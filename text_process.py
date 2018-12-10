@@ -6,6 +6,9 @@ from itertools import groupby
 from datetime import datetime, date, timedelta
 from collections import Counter, defaultdict
 from matplotlib import pyplot as plt
+from glob import glob
+import json
+import os
 
 
 DATE_FORMAT = '%Y/%m/%d'
@@ -70,6 +73,26 @@ def faceboook_msg_per_day(msg_data):
     return day_text_dict
 
 
+def slack_msg_per_day(datadir):
+    """
+    Read slack data from the slack dump directory structure and create a {day: text} dict.
+    :param datadir: slack dump path
+    :return: {day: text} dict, where the text is the concatenated messages on a day.
+    """
+    day_text_dict = {}
+    channels = glob(datadir + '/*')
+    for channel in channels:
+        days = glob(channel + '/*')
+        for day in days:
+            date = os.path.split(os.path.splitext(day)[0])[1]
+            with open(day) as f:
+                day_data = json.load(f)
+            for m in day_data:
+                if date in day_text_dict:
+                    day_text_dict[date] += ' ' + m['text']
+                else:
+                    day_text_dict[date] = m['text']
+    return day_text_dict
 
 
 
