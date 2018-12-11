@@ -9,9 +9,15 @@ from matplotlib import pyplot as plt
 from glob import glob
 import json
 import os
+import re
 
 
 DATE_FORMAT = '%Y/%m/%d'
+
+
+def replace_links(text, url_patterns=['youtube']):
+    url_patterns = '|'.join(url_patterns)
+    return re.sub('[^\s]?(' + url_patterns + ')[^\s]+', url_patterns + '_link', text)
 
 
 def get_articles(data):

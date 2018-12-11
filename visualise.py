@@ -6,7 +6,6 @@ import matplotlib.animation as animation
 from tqdm import tqdm
 import json
 
-import util
 import text_process as tp
 
 
@@ -22,7 +21,8 @@ def plt_wordcloud(text, lang='hungarian', animated=True):
     return plt.imshow(wordcloud, interpolation="bilinear", animated=animated)
 
 
-def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_delay=1000, save_name=False):
+def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_delay=1000, save_name=False,
+                       url_patterns=None):
     """
     Animates a wordcloud sequence.
     :param text_dict_items: sorted pairs by key (e.g date)
@@ -36,6 +36,8 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
     ims = []
     for key, text in tqdm(text_dict_items):
         title = plt.text(170, -4, key)
+        if url_patterns:
+            text = tp.replace_links(text, url_patterns)
         im = plt_wordcloud(text, lang=lang, animated=True)
         ims.append([im, title])
 
@@ -59,9 +61,10 @@ if __name__ == '__main__':
 
 
     # Facebook/Slack messages
-    source = 'slack' # 'slack' or 'fb'
+    source = 'fb' # 'slack' or 'fb'
 
-    stopwords_lang['hunglish'] += ['www', 'youtube', 'https', 'http', 'com', 'watch', 'facebook']
+    # stopwords_lang['hunglish'] += ['www', 'youtube', 'https', 'http', 'com', 'watch', 'facebook']
+    # TODO: change links to patern_link token in corpus or to sth else?
 
     if source == 'fb':
         with open('/Users/anitavero/projects/data/messages/inbox/jozsefkonczer_mud106plvq/message.json') as f:
@@ -71,4 +74,5 @@ if __name__ == '__main__':
         daily_messages = tp.slack_msg_per_day('/Users/anitavero/projects/data/Artificial General Emotional Intelligence Slack export Feb 17 2018 - Dec 10 2018')
 
 
-    animate_wordclouds(sorted(daily_messages.items(), key=lambda x: x[0]), lang='hunglish', interval=2000)
+    animate_wordclouds(sorted(daily_messages.items(), key=lambda x: x[0]), lang='hunglish', interval=2000,
+                       url_patterns=['http'])
