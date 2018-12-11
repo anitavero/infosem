@@ -15,9 +15,10 @@ import re
 DATE_FORMAT = '%Y/%m/%d'
 
 
-def replace_links(text, url_patterns=['youtube']):
-    url_patterns = '|'.join(url_patterns)
-    return re.sub('[^\s]?(' + url_patterns + ')[^\s]+', url_patterns + '_link', text)
+def replace_links(text, url_patterns):
+    """Filter non words from links"""
+    slink = re.sub(r'/|-|_|\.' + url_patterns, ' ', text)
+    return ' '.join(filter(lambda s: s.isalpha(), slink.split()))
 
 
 def get_articles(data):
@@ -68,14 +69,16 @@ def plot_facebook_msg_hist(msg_data):
     plt.show()
 
 
+#Facebook encoding is fd up so we use a workaround from here:
+# https://stackoverflow.com/questions/50008296/facebook-json-badly-encoded
 def faceboook_msg_per_day(msg_data):
     day_text_dict = {}
     for m in msg_data['messages']:
         k = timestampms_format(m['timestamp_ms'])
         if k in day_text_dict:
-            day_text_dict[k] += ' ' + m['content']
+            day_text_dict[k] += ' ' + m['content'].encode('latin1').decode('utf8')
         else:
-            day_text_dict[k] = m['content']
+            day_text_dict[k] = m['content'].encode('latin1').decode('utf8')
     return day_text_dict
 
 

@@ -63,9 +63,6 @@ if __name__ == '__main__':
     # Facebook/Slack messages
     source = 'fb' # 'slack' or 'fb'
 
-    # stopwords_lang['hunglish'] += ['www', 'youtube', 'https', 'http', 'com', 'watch', 'facebook']
-    # TODO: change links to patern_link token in corpus or to sth else?
-
     if source == 'fb':
         with open('/Users/anitavero/projects/data/messages/inbox/jozsefkonczer_mud106plvq/message.json') as f:
             data = json.load(f)
@@ -75,4 +72,4 @@ if __name__ == '__main__':
 
 
     animate_wordclouds(sorted(daily_messages.items(), key=lambda x: x[0]), lang='hunglish', interval=2000,
-                       url_patterns=['http'])
+                       url_patterns='|http|www|com|org|hu')
