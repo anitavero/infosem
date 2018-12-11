@@ -4,7 +4,7 @@ from nltk.corpus import stopwords
 from unidecode import unidecode
 import matplotlib.animation as animation
 from tqdm import tqdm
-import json
+import util
 
 import text_process as tp
 
@@ -64,8 +64,7 @@ if __name__ == '__main__':
     source = 'fb' # 'slack' or 'fb'
 
     if source == 'fb':
-        with open('/Users/anitavero/projects/data/messages/inbox/jozsefkonczer_mud106plvq/message.json') as f:
-            data = json.load(f)
+        data = tp.read_facebook_jsons('/Users/anitavero/projects/data/facebook_jk')
         daily_messages = tp.faceboook_msg_per_day(data)
     elif source == 'slack':
         daily_messages = tp.slack_msg_per_day('/Users/anitavero/projects/data/Artificial General Emotional Intelligence Slack export Feb 17 2018 - Dec 10 2018')

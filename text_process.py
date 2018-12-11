@@ -18,7 +18,7 @@ DATE_FORMAT = '%Y/%m/%d'
 def replace_links(text, url_patterns):
     """Filter non words from links"""
     slink = re.sub(r'/|-|_|\.' + url_patterns, ' ', text)
-    return ' '.join(filter(lambda s: s.isalpha(), slink.split()))
+    return ' '.join(filter(lambda s: s.isalnum(), slink.split()))
 
 
 def get_articles(data):
@@ -80,6 +80,20 @@ def faceboook_msg_per_day(msg_data):
         else:
             day_text_dict[k] = m['content'].encode('latin1').decode('utf8')
     return day_text_dict
+
+
+def read_facebook_jsons(dir):
+    """Read and combine the messages of json Facebook files in a directory."""
+    data = None
+    files = glob(dir + '/*')
+    for file in files:
+        with open(file) as f:
+            new_data = json.load(f)
+            if data is None:
+                data = new_data
+            else:
+                data['messages'] += new_data['messages']
+    return data
 
 
 def slack_msg_per_day(datadir):
