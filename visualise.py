@@ -41,9 +41,10 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
 
     ani = animation.ArtistAnimation(fig, ims, interval=interval, blit=False,
                                     repeat_delay=repeat_delay)
+    plt.axis('off')
 
     if save_name:
-        ani.save("{}.mp4".format(save_name))
+        ani.save("{}.mp4".format(save_name), bitrate=1000)
 
     plt.show()
 
@@ -57,10 +58,17 @@ if __name__ == '__main__':
     # animate_wordclouds(sorted(news_per_month.items(), key=lambda x: x[0]), interval=2000)
 
 
-    # Facebook messages
+    # Facebook/Slack messages
+    source = 'slack' # 'slack' or 'fb'
+
     stopwords_lang['hunglish'] += ['www', 'youtube', 'https', 'http', 'com', 'watch', 'facebook']
 
-    with open('/Users/anitavero/projects/data/messages/inbox/jozsefkonczer_mud106plvq/message.json') as f:
-        jk = json.load(f)
-    daily_messages = tp.faceboook_msg_per_day(jk)
-    animate_wordclouds(sorted(daily_messages.items(), key=lambda x: x[0]), lang='hunglish', interval=4000)
+    if source == 'fb':
+        with open('/Users/anitavero/projects/data/messages/inbox/jozsefkonczer_mud106plvq/message.json') as f:
+            data = json.load(f)
+        daily_messages = tp.faceboook_msg_per_day(data)
+    elif source == 'slack':
+        daily_messages = tp.slack_msg_per_day('/Users/anitavero/projects/data/Artificial General Emotional Intelligence Slack export Feb 17 2018 - Dec 10 2018')
+
+
+    animate_wordclouds(sorted(daily_messages.items(), key=lambda x: x[0]), lang='hunglish', interval=2000)
