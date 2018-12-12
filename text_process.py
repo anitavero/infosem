@@ -116,7 +116,3 @@ def slack_msg_per_day(datadir):
                 else:
                     day_text_dict[date] = m['text']
     return day_text_dict
-
-
-
-
