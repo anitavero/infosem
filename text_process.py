@@ -28,7 +28,7 @@ def get_articles(data):
 def articles_per_month(data):
     """
     Group articles for months
-    :param data:
+    :param data: dict list (output of crawlers.spiders.crawler.py)
     :return: dict of {srt: srt}: <date: concatenated text>
     """
     data.sort(key=lambda x: x['date'])
@@ -50,6 +50,11 @@ def days_interval(day1, day2):
 
 
 def facebook_msg_hist(msg_data):
+    """
+    Returns a histogram of Facebook messages per day.
+    :param msg_data: Facebook data from json.
+    :return: Counter of dates
+    """
     times = [timestampms_format(m['timestamp_ms']) for m in msg_data['messages']]
     msgcnt = Counter(times)
     dint = days_interval(times[-1], times[0])
