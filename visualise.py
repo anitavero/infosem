@@ -23,7 +23,7 @@ def plt_wordcloud(text, lang='hungarian', animated=True):
 
 
 def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_delay=1000, save_name=None,
-                       url_patterns=None):
+                       url_filter_ptrn=None):
     """
     Animates a wordcloud sequence.
     :param text_dict_items: sorted pairs by key (e.g date)
@@ -37,8 +37,8 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
     ims = []
     for key, text in tqdm(text_dict_items):
         title = plt.text(170, -4, key)
-        if url_patterns:
-            text = tp.replace_links(text, url_patterns)
+        if url_filter_ptrn:
+            text = tp.replace_links(text, url_filter_ptrn)
         im = plt_wordcloud(text, lang=lang, animated=True)
         ims.append([im, title])
 
@@ -52,7 +52,7 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
     plt.show()
 
 
-def main(source, data_path=None, save_name=None, interval=3000):
+def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn=''):
     if source == 'news':
         if not data_path:
             data_path = '444.jl'
@@ -77,7 +77,7 @@ def main(source, data_path=None, save_name=None, interval=3000):
             daily_messages = tp.slack_msg_per_day(data_path)
 
         animate_wordclouds(sorted(daily_messages.items(), key=lambda x: x[0]), lang='hunglish', interval=interval,
-                           url_patterns='|http|www|com|org|hu', save_name=save_name)
+                           url_filter_ptrn='|http|www|com|org|hu' + url_filter_ptrn, save_name=save_name)
 
 
 if __name__ == '__main__':
