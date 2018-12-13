@@ -21,18 +21,24 @@ def replace_links(text, url_patterns):
     return ' '.join(filter(lambda s: s.isalnum(), slink.split()))
 
 
+def get_titles(data):
+    return [x['title'][0] for x in data if x['title']]
+
 def get_articles(data):
     return [' '.join(x['article']) for x in data if x['article'] and len(x['article'][0]) > 1]
 
+data_getters = {'article': get_articles, 'title': get_titles}
 
-def articles_per_month(data):
+
+def data_per_month(data, data_type):
     """
     Group articles for months
     :param data: dict list (output of crawlers.spiders.crawler.py)
+    :param data_getter: {get_articles | get_titles}
     :return: dict of {srt: srt}: <date: concatenated text>
     """
     data.sort(key=lambda x: x['date'])
-    groups = {year_month: ' '.join(get_articles(list(d))) for year_month, d in
+    groups = {year_month: ' '.join(data_getters[data_type](list(d))) for year_month, d in
              groupby(data, key=lambda x: x['date'][0][:7] if x['date'] else '') if year_month is not ''}
     return groups
 

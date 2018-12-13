@@ -53,7 +53,7 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
 
 
 def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
-         hist=False):
+         hist=False, data_type='article'):
     if source == 'news':
         if not data_path:
             data_path = '444.jl'
@@ -61,7 +61,7 @@ def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn=
         data.sort(key=lambda x: x['date'])
         # data = data[-50:]
         # articles = tp.get_articles(data)
-        news_per_month = tp.articles_per_month(data)
+        news_per_month = tp.data_per_month(data, data_type=data_type)
         animate_wordclouds(sorted(news_per_month.items(), key=lambda x: x[0]), interval=interval,
                            save_name=save_name)
 
