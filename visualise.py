@@ -52,7 +52,8 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
     plt.show()
 
 
-def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn=''):
+def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
+         hist=False):
     if source == 'news':
         if not data_path:
             data_path = '444.jl'
@@ -70,7 +71,11 @@ def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn=
             if not data_path:
                 data_path = '/Users/anitavero/projects/data/facebook_jk'
             data = tp.read_facebook_jsons(data_path)
-            daily_messages = tp.faceboook_msg_per_day(data)
+            if hist:
+                tp.plot_facebook_msg_hist(data, labelfreq=20)
+                return
+            else:
+                daily_messages = tp.faceboook_msg_per_day(data)
         elif source == 'slack':
             if not data_path:
                 data_path = '/Users/anitavero/projects/data/Artificial General Emotional Intelligence Slack export Feb 17 2018 - Dec 10 2018'

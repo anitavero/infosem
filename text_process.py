@@ -57,7 +57,8 @@ def facebook_msg_hist(msg_data):
     """
     times = [timestampms_format(m['timestamp_ms']) for m in msg_data['messages']]
     msgcnt = Counter(times)
-    dint = days_interval(times[-1], times[0])
+    ordered_days = sorted(msgcnt.keys())
+    dint = days_interval(ordered_days[0], ordered_days[-1])
     cnt = {d: 0 for d in dint}
     msgcnt.update(cnt)
     msgcnt_hist = list(msgcnt.items())
@@ -65,18 +66,32 @@ def facebook_msg_hist(msg_data):
     return msgcnt_hist
 
 
-def plot_facebook_msg_hist(msg_data):
+def plot_facebook_msg_hist(msg_data, labelfreq=2):
+    """Plot a message histogram using a bar."""
     msgcnt_hist = facebook_msg_hist(msg_data)
-    x, y = list(zip(*msgcnt_hist))
+    plot_bar(msgcnt_hist, labelfreq)
+
+
+def plot_bar(key_value_list, labelfreq):
+    """
+    Plots a bar of a (key, value) list.
+    :param key_value_list: list of (str, int)
+    """
+    x, y = list(zip(*key_value_list))
     plt.bar(x, y)
     plt.xticks(rotation=70)
-    plt.xticks(x, [x[i] if i % 20 == 0 else '' for i in range(len(x))])
+    plt.xticks(x, [x[i] if i % labelfreq == 0 else '' for i in range(len(x))])
     plt.show()
 
 
 #Facebook encoding is fd up so we use a workaround from here:
 # https://stackoverflow.com/questions/50008296/facebook-json-badly-encoded
 def faceboook_msg_per_day(msg_data):
+    """
+    Concatenates messages per day.
+    :param msg_data: Loaded Faceebook json.
+    :return: (date, str) dict
+    """
     day_text_dict = {}
     for m in msg_data['messages']:
         k = timestampms_format(m['timestamp_ms'])
