@@ -31,15 +31,29 @@ def get_articles(data):
 data_getters = {'article': get_articles, 'title': get_titles}
 
 
-def data_per_month(data, data_type):
+def get_text(data, data_type):
+    return ' '.join(data_getters[data_type](data))
+
+
+def corpus_hist(text):
+    # TODO: filter stop words
+    return Counter(text.lower.split())
+
+
+def data_per_month(data, data_type, concat):
     """
     Group articles for months
     :param data: dict list (output of crawlers.spiders.crawler.py)
     :param data_getter: {get_articles | get_titles}
-    :return: dict of {srt: srt}: <date: concatenated text>
+    :param concat: boolean, if True texts for each months are concatenated
+    :return: dict of {srt: srt|list(str)}: <date: concatenated text | text list>
     """
     data.sort(key=lambda x: x['date'])
-    groups = {year_month: ' '.join(data_getters[data_type](list(d))) for year_month, d in
+    def aggr(str_list):
+        if concat:
+            return ' '.join(str_list)
+        return str_list
+    groups = {year_month: aggr(data_getters[data_type](list(d))) for year_month, d in
              groupby(data, key=lambda x: x['date'][0][:7] if x['date'] else '') if year_month is not ''}
     return groups
 

@@ -21,8 +21,7 @@ class NewsSpider(scrapy.Spider):
     xph_keywords = '//meta[@name="news_keywords"]/@content'
     xph_description = '//meta[@property="og:description"]/@content'
     xph_date = '//meta[@itemprop="datePublished"]/@content'
-
-    xph_links = '//h3/a/@href|//a[@class="infinity-next button"]/@href'
+    xph_links = '//a/@href'
 
 
     def parse(self, response):
@@ -76,11 +75,14 @@ class NegySpider(NewsSpider):
         'https://444.hu/author/urfip/',
         'https://444.hu/author/vajdag/'
     ]
+    allowed_domains = '444.hu'
     custom_settings = {
         'SCHEDULER_DEBUG': True,
         'FEED_FORMAT': 'jsonlines',
         'FEED_URI': '444.jl'
     }
+
+    xph_links = '//h3/a/@href|//a[@class="infinity-next button"]/@href'
 
 
 class OrigoSpider(NewsSpider):
@@ -89,6 +91,7 @@ class OrigoSpider(NewsSpider):
     """
     name = 'origo'
     start_urls = ['http://www.origo.hu/index.html']
+    allowed_domains = 'origo.hu'
     custom_settings = {
         'SCHEDULER_DEBUG': True,
         'FEED_FORMAT': 'jsonlines',
@@ -97,4 +100,3 @@ class OrigoSpider(NewsSpider):
 
     xph_date = '//meta[@name="publish-date"]/@content'
     xph_article = '//article/descendant-or-self::*[self::p | self::ul| self::h2]/descendant-or-self::*/text()'
-    xph_links = '//a[contains(@href, "www.origo.hu")]/@href'
