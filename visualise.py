@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 from tqdm import tqdm
 import util
 import argh
+from argh import arg
 
 import text_process as tp
 
@@ -52,15 +53,34 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
     plt.show()
 
 
+def plot_facebook_msg_hist(msg_data, labelfreq=2):
+    """Plot a message histogram using a bar."""
+    msgcnt_hist = tp.facebook_msg_hist(msg_data)
+    plot_bar(msgcnt_hist, labelfreq)
+
+
+def plot_bar(key_value_list, labelfreq):
+    """
+    Plots a bar of a (key, value) list.
+    :param key_value_list: list of (str, int)
+    """
+    x, y = list(zip(*key_value_list))
+    plt.bar(x, y)
+    plt.xticks(rotation=70)
+    plt.xticks(x, [x[i] if i % labelfreq == 0 else '' for i in range(len(x))])
+    plt.show()
+
+
+@arg('--action', choices=['wc_animation',
+                          'word_freq_bar',
+                          'fb_msg_hist'])
 def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
-         hist=False, data_type='article'):
+         data_type='article', action='wc_animation'):
     if source == 'news':
         if not data_path:
             data_path = '444.jl'
         data = util.read_jl(data_path)
         data.sort(key=lambda x: x['date'])
-        # data = data[-50:]
-        # articles = tp.get_articles(data)
         news_per_month = tp.data_per_month(data, data_type=data_type)
         animate_wordclouds(sorted(news_per_month.items(), key=lambda x: x[0]), interval=interval,
                            save_name=save_name)
@@ -71,8 +91,8 @@ def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn=
             if not data_path:
                 data_path = '/Users/anitavero/projects/data/facebook_jk'
             data = tp.read_facebook_jsons(data_path)
-            if hist:
-                tp.plot_facebook_msg_hist(data, labelfreq=20)
+            if action == 'fb_msg_hist':
+                plot_facebook_msg_hist(data, labelfreq=20)
                 return
             else:
                 daily_messages = tp.faceboook_msg_per_day(data)

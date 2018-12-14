@@ -73,24 +73,6 @@ def facebook_msg_hist(msg_data):
     return msgcnt_hist
 
 
-def plot_facebook_msg_hist(msg_data, labelfreq=2):
-    """Plot a message histogram using a bar."""
-    msgcnt_hist = facebook_msg_hist(msg_data)
-    plot_bar(msgcnt_hist, labelfreq)
-
-
-def plot_bar(key_value_list, labelfreq):
-    """
-    Plots a bar of a (key, value) list.
-    :param key_value_list: list of (str, int)
-    """
-    x, y = list(zip(*key_value_list))
-    plt.bar(x, y)
-    plt.xticks(rotation=70)
-    plt.xticks(x, [x[i] if i % labelfreq == 0 else '' for i in range(len(x))])
-    plt.show()
-
-
 #Facebook encoding is fd up so we use a workaround from here:
 # https://stackoverflow.com/questions/50008296/facebook-json-badly-encoded
 def faceboook_msg_per_day(msg_data):
