@@ -1,7 +1,5 @@
 from wordcloud import WordCloud
 from matplotlib import pyplot as plt
-from nltk.corpus import stopwords
-from unidecode import unidecode
 import matplotlib.animation as animation
 from tqdm import tqdm
 import util
@@ -11,14 +9,8 @@ from argh import arg
 import text_process as tp
 
 
-hun_stopwords = stopwords.words('hungarian') + \
-                ['is', 'ha', 'szerintem', 'szoval', 'na', 'hat', 'kicsit', 'ugye', 'amugy']
-stopwords_lang = {'hungarian': hun_stopwords, 'english': stopwords.words('english'),
-                  'hunglish': hun_stopwords + stopwords.words('english') + [unidecode(w) for w in hun_stopwords]}
-
-
 def plt_wordcloud(text, lang='hungarian', animated=True):
-    sw = stopwords_lang[lang]
+    sw = tp.stopwords_lang[lang]
     wordcloud = WordCloud(stopwords=sw).generate(text)
     return plt.imshow(wordcloud, interpolation="bilinear", animated=animated)
 
@@ -53,6 +45,32 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
     plt.show()
 
 
+def plot_num_per_months(date_data_dict, labelfreq):
+    """Plot article number per months.
+    :param date_data_dict: {date: data list} dict
+    """
+    plot_bar([(d, len(t)) for d, t in date_data_dict.items()], labelfreq)
+
+
+def sent_len_hist(data):
+    """Plot sentence length histogram.
+    :param data: dict
+    """
+    plt.hist([len(t.split('.')) for t in tp.get_articles(data)], bins=200)
+    plt.xlabel('Sentence num')
+    plt.ylabel('Number of articles')
+    plt.title('Sentence number distribution')
+    plt.show()
+
+
+def common_word_hist(data, data_type, lang, word_num=100):
+    word_hist = tp.corpus_hist(data, data_type, lang)
+    plt.xlabel('Words')
+    plt.ylabel('Number of words')
+    plt.title('Most common words')
+    plot_bar(word_hist.most_common(word_num), 1)
+
+
 def plot_facebook_msg_hist(msg_data, labelfreq=2):
     """Plot a message histogram using a bar."""
     msgcnt_hist = tp.facebook_msg_hist(msg_data)
@@ -72,18 +90,28 @@ def plot_bar(key_value_list, labelfreq):
 
 
 @arg('--action', choices=['wc_animation',
-                          'word_freq_bar',
+                          'month_freq_bar',
+                          'word_hist',
                           'fb_msg_hist'])
 def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
-         data_type='article', action='wc_animation'):
+         data_type='article', action='wc_animation', lang='hungarian'):
+
     if source == 'news':
         if not data_path:
             data_path = '444.jl'
         data = util.read_jl(data_path)
         data.sort(key=lambda x: x['date'])
-        news_per_month = tp.data_per_month(data, data_type=data_type)
-        animate_wordclouds(sorted(news_per_month.items(), key=lambda x: x[0]), interval=interval,
-                           save_name=save_name)
+
+        if action == 'wc_animation':
+            news_per_month = tp.data_per_month(data, data_type=data_type, concat=True)
+            animate_wordclouds(sorted(news_per_month.items(), key=lambda x: x[0]), interval=interval,
+                               save_name=save_name)
+        elif action == 'month_freq_bar':
+            news_per_month = tp.data_per_month(data, data_type=data_type, concat=False)
+            plot_num_per_months(news_per_month, labelfreq=2)
+        elif action == 'word_hist':
+            common_word_hist(data, 'article', lang, 70)
+
 
     elif source in ['fb', 'slack']:
         # Facebook/Slack messages

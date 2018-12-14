@@ -10,7 +10,15 @@ from glob import glob
 import json
 import os
 import re
+from nltk.corpus import stopwords
+from unidecode import unidecode
+import string
 
+
+hun_stopwords = stopwords.words('hungarian') + \
+                ['is', 'ha', 'szerintem', 'szoval', 'na', 'hat', 'kicsit', 'ugye', 'amugy']
+stopwords_lang = {'hungarian': hun_stopwords, 'english': stopwords.words('english'),
+                  'hunglish': hun_stopwords + stopwords.words('english') + [unidecode(w) for w in hun_stopwords]}
 
 DATE_FORMAT = '%Y/%m/%d'
 
@@ -35,9 +43,13 @@ def get_text(data, data_type):
     return ' '.join(data_getters[data_type](data))
 
 
-def corpus_hist(text):
-    # TODO: filter stop words
-    return Counter(text.lower.split())
+def corpus_hist(data, data_type, lang):
+    # TODO: stemming
+    text = get_text(data, data_type).lower()
+    trtab = text.maketrans(string.punctuation, ''.join([' ' for i in range(len(string.punctuation))]))
+    words = text.translate(trtab).split()
+    words = filter(lambda w: w not in stopwords_lang[lang], words)
+    return Counter(words)
 
 
 def data_per_month(data, data_type, concat):
