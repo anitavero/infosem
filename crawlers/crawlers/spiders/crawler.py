@@ -2,37 +2,15 @@ import scrapy
 
 
 class NewsSpider(scrapy.Spider):
+    """Abstract Spider class.
+    Usage: scrapy crawl <name> -s JOBDIR=<resume_dir>
+    """
     name = "news"
-    start_urls = [
-        'https://444.hu/author/acsd/',
-        'https://444.hu/author/alberta/',
-        'https://444.hu/author/bedem/',
-        'https://444.hu/author/borosj/',
-        'https://444.hu/author/botost/',
-        'https://444.hu/author/czinkoczis/',
-        'https://444.hu/author/erdelyip/',
-        'https://444.hu/author/halaszj/',
-        'https://444.hu/author/haszanz/',
-        'https://444.hu/author/herczegm/',
-        'https://444.hu/author/horvathb/',
-        'https://444.hu/author/akiraly/',
-        'https://444.hu/author/kulcsarrebeka/',
-        'https://444.hu/author/magyarip/',
-        'https://444.hu/author/plankog/',
-        #https://'444.hu/category/hirdetes/',
-        'https://444.hu/author/renyip/',
-        'https://444.hu/author/sarkadizs/',
-        'https://444.hu/author/szily/',
-        'https://444.hu/author/tbg/',
-        'https://444.hu/author/peteru/',
-        'https://444.hu/author/urfip/',
-        'https://444.hu/author/vajdag/'
-    ]
-    data_file = '444.jl'
+    start_urls = []
     custom_settings = {
         'SCHEDULER_DEBUG': True,
         'FEED_FORMAT': 'jsonlines',
-        'FEED_URI': data_file
+        'FEED_URI': 'news.jl'
     }
 
     # Xpath queries
@@ -68,7 +46,47 @@ class NewsSpider(scrapy.Spider):
 
 
 
+class NegySpider(NewsSpider):
+    """
+    Usage: scrapy crawl negy -s JOBDIR=resume_negy
+    """
+    name = "negy"
+    start_urls = [
+        'https://444.hu/author/acsd/',
+        'https://444.hu/author/alberta/',
+        'https://444.hu/author/bedem/',
+        'https://444.hu/author/borosj/',
+        'https://444.hu/author/botost/',
+        'https://444.hu/author/czinkoczis/',
+        'https://444.hu/author/erdelyip/',
+        'https://444.hu/author/halaszj/',
+        'https://444.hu/author/haszanz/',
+        'https://444.hu/author/herczegm/',
+        'https://444.hu/author/horvathb/',
+        'https://444.hu/author/akiraly/',
+        'https://444.hu/author/kulcsarrebeka/',
+        'https://444.hu/author/magyarip/',
+        'https://444.hu/author/plankog/',
+        #https://'444.hu/category/hirdetes/',
+        'https://444.hu/author/renyip/',
+        'https://444.hu/author/sarkadizs/',
+        'https://444.hu/author/szily/',
+        'https://444.hu/author/tbg/',
+        'https://444.hu/author/peteru/',
+        'https://444.hu/author/urfip/',
+        'https://444.hu/author/vajdag/'
+    ]
+    custom_settings = {
+        'SCHEDULER_DEBUG': True,
+        'FEED_FORMAT': 'jsonlines',
+        'FEED_URI': '444.jl'
+    }
+
+
 class OrigoSpider(NewsSpider):
+    """
+    Usage: scrapy crawl origo -s JOBDIR=resume_origo
+    """
     name = 'origo'
     start_urls = ['http://www.origo.hu/index.html']
     custom_settings = {
@@ -79,4 +97,4 @@ class OrigoSpider(NewsSpider):
 
     xph_date = '//meta[@name="publish-date"]/@content'
     xph_article = '//article/descendant-or-self::*[self::p | self::ul| self::h2]/descendant-or-self::*/text()'
-    xph_links = '//h3/a/@href|//a[@class="news-title"]/@href'
+    xph_links = '//a[contains(@href, "www.origo.hu")]/@href'

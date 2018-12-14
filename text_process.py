@@ -21,8 +21,9 @@ def replace_links(text, url_patterns):
     return ' '.join(filter(lambda s: s.isalnum(), slink.split()))
 
 
-def get_titles(data):
-    return [x['title'][0] for x in data if x['title']]
+def get_titles(data, filter=None):
+    return [x['title'][0] for x in data if x['title']
+            if not filter or filter.lower() in x['title'][0].lower()]
 
 def get_articles(data):
     return [' '.join(x['article']) for x in data if x['article'] and len(x['article'][0]) > 1]
