@@ -29,6 +29,16 @@ def replace_links(text, url_patterns):
     return ' '.join(filter(lambda s: s.isalnum(), slink.split()))
 
 
+def get_year(date_str):
+    """Get year from different date formats."""
+    return int(re.findall('20\d\d', date_str)[0])
+
+
+def filter_by_year(data, years):
+    """Filter data by dates"""
+    return filter(lambda x: x['date'] and get_year(x['date'][0].split('-')[0]) not in years, data)
+
+
 def get_titles(data, filter=None):
     return [x['title'][0] for x in data if x['title']
             if not filter or filter.lower() in x['title'][0].lower()]
