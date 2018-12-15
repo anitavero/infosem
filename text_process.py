@@ -3,14 +3,14 @@ try:
 except:
     import util
 from itertools import groupby
-from datetime import datetime, date, timedelta
-from collections import Counter, defaultdict
-from matplotlib import pyplot as plt
+from datetime import datetime, timedelta
+from collections import Counter
 from glob import glob
 import json
 import os
 import re
 from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize
 from unidecode import unidecode
 import string
 
@@ -53,13 +53,31 @@ def get_text(data, data_type):
     return ' '.join(data_getters[data_type](data))
 
 
-def corpus_hist(data, data_type, lang):
+def tokenize(text, lang):
+    """
+    Lower, tokenize, filter punctuation and stopwords.
+    :param text: str
+    :param lang: {hungarian|english|hunglish}
+    :return: str list iterator
+    """
     # TODO: stemming
-    text = get_text(data, data_type).lower()
+    text = text.lower()
     trtab = text.maketrans(string.punctuation, ''.join([' ' for i in range(len(string.punctuation))]))
     words = text.translate(trtab).split()
     words = filter(lambda w: w not in stopwords_lang[lang], words)
-    return Counter(words)
+    return words
+
+
+def get_sents(data, data_type, lang):
+    """Convert text to list of str format (sdt for gensim)."""
+    text = get_text(data, data_type)
+    sents = sent_tokenize(text)
+    return (tokenize(s, lang) for s in sents)
+
+
+def corpus_hist(data, data_type, lang):
+    text = get_text(data, data_type)
+    return Counter(tokenize(text, lang))
 
 
 def data_per_month(data, data_type, concat):
