@@ -72,7 +72,7 @@ def get_sents(data, data_type, lang):
     """Convert text to list of str format (sdt for gensim)."""
     text = get_text(data, data_type)
     sents = sent_tokenize(text)
-    return (tokenize(s, lang) for s in sents)
+    return iter([list(tokenize(s, lang)) for s in sents])
 
 
 def corpus_hist(data, data_type, lang):
