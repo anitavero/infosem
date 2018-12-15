@@ -7,8 +7,8 @@ import util
 
 
 def train(data, data_type, lang, save_path,
-         size=100, window=5, min_count=1, workers=4,
-         epochs=5):
+         size=100, window=5, min_count=100, workers=4,
+         epochs=5, max_vocab_size=None):
     """
     Train w2v.
     :param data_path: str, json file path
@@ -18,7 +18,8 @@ def train(data, data_type, lang, save_path,
     print("Get sents...")
     texts = tp.get_sents(data, data_type=data_type, lang=lang)
 
-    model = Word2Vec(texts, size=size, window=window, min_count=min_count, workers=workers)
+    model = Word2Vec(texts, size=size, window=window, min_count=min_count, workers=workers,
+                     max_vocab_size=max_vocab_size)
     model.save(save_path)
 
     model = Word2Vec.load(save_path)
@@ -29,9 +30,10 @@ def train(data, data_type, lang, save_path,
 
 
 def main(data_path, data_type, lang, save_path,
-         size=100, window=5, min_count=1, workers=4, epochs=5):
+         size=100, window=5, min_count=100, workers=4, epochs=5, max_vocab_size=None):
     data = util.read_jl(data_path)
-    return train(data, data_type, lang, save_path, size, window, min_count, workers, epochs)
+    return train(data, data_type, lang, save_path, size, window, min_count, workers, epochs,
+                 max_vocab_size)
 
 
 if __name__ == '__main__':
