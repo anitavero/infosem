@@ -147,13 +147,15 @@ def tensorboard_emb(model, model_name, output_path):
                           'fb_msg_hist',
                           'embedding'])
 def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
-         data_type='article', action='wc_animation', lang='hungarian'):
+         data_type='article', action='wc_animation', lang='hungarian',
+         tn_dir='tnboard_data'):
 
     if source == 'news':
-        if not data_path:
-            data_path = '444.jl'
-        data = util.read_jl(data_path)
-        data.sort(key=lambda x: x['date'])
+        if action != 'embedding':
+            if not data_path:
+                data_path = '444.jl'
+            data = util.read_jl(data_path)
+            data.sort(key=lambda x: x['date'])
 
         if action == 'wc_animation':
             news_per_month = tp.data_per_month(data, data_type=data_type, concat=True)
@@ -165,7 +167,8 @@ def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn=
         elif action == 'word_hist':
             common_word_hist(data, 'article', lang, 70)
         elif action == 'embedding':
-            tensorboard_emb(data_path, 'tnboard_data')
+            model = Word2Vec.load(data_path)
+            tensorboard_emb(model, save_name, tn_dir)
 
 
     elif source in ['fb', 'slack']:
