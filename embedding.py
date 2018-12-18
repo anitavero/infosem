@@ -29,7 +29,7 @@ def train(data, data_type, lang, save_path,
     return model
 
 
-def main(data_path, data_type, lang, save_path,
+def main(data_path, save_path, data_type='article', lang='hungarian',
          size=100, window=5, min_count=100, workers=4, epochs=5, max_vocab_size=None):
     data = util.read_jl(data_path)
     return train(data, data_type, lang, save_path, size, window, min_count, workers, epochs,
