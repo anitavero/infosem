@@ -1,6 +1,7 @@
-from gensim.test.utils import get_tmpfile
 from gensim.models import Word2Vec
 import argh
+from sklearn.cluster import DBSCAN
+from sklearn import metrics
 
 import text_process as tp
 import util
@@ -27,6 +28,22 @@ def train(data, data_type, lang, save_path,
     model.train(texts, total_examples=len(list(texts)), epochs=epochs)
 
     return model
+
+
+def dbscan_clustering(model, eps=0.5, min_samples=90):
+    db = DBSCAN(eps=eps, min_samples=min_samples, metric='cosine').fit(model.wv.vectors)
+    labels = db.labels_
+
+    # Number of clusters in labels, ignoring noise if present.
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise_ = list(labels).count(-1)
+
+    print('Estimated number of clusters: %d' % n_clusters_)
+    print('Estimated number of noise points: %d' % n_noise_)
+    if n_clusters_ > 1:
+        print("Silhouette Coefficient: %0.3f"
+              % metrics.silhouette_score(model.wv.vectors, labels))
+
 
 
 def main(data_path, save_path, data_type='article', lang='hungarian',
