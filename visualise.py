@@ -98,18 +98,22 @@ def plot_bar(key_value_list, labelfreq):
 ########## Embeddings ##########
 ################################
 
-def tensorboard_emb(model, model_name, output_path):
+def tensorboard_emb(model, model_name, output_path, labeler, label_name):
     """
     Visualise gensim model using TensorBoard.
     Code from: https://gist.github.com/BrikerMan/7bd4e4bd0a00ac9076986148afc06507
     :param model: trained gensim model
+    :param model_name: str, name for meta files
     :param output_path: str, directory
+    :param labels: function(word) returns value, labels for text and/or colouring
+    :param label_name: str, title for the labeling (e.g.: Cluster)
     """
     file_name = "{}_metadata".format(model_name)
     meta_file = "{}.tsv".format(file_name)
     placeholder = np.zeros((len(model.wv.index2word), 100))
 
     with open(os.path.join(output_path, meta_file), 'wb') as file_metadata:
+        file_metadata.write("Word\t{}".format(label_name).encode('utf-8') + b'\n')
         for i, word in enumerate(model.wv.index2word):
             placeholder[i] = model[word]
             # temporary solution for https://github.com/tensorflow/tensorflow/issues/9094
@@ -117,7 +121,8 @@ def tensorboard_emb(model, model_name, output_path):
                 print("Emply Line, should replecaed by any thing else, or will cause a bug of tensorboard")
                 file_metadata.write("{0}".format('<Empty Line>').encode('utf-8') + b'\n')
             else:
-                file_metadata.write("{0}".format(word).encode('utf-8') + b'\n')
+                file_metadata.write(
+                    "{0}\t{1}".format(word, labeler(word)).encode('utf-8') + b'\n')
 
     # define the model without training
     sess = tf.InteractiveSession()
@@ -146,9 +151,11 @@ def tensorboard_emb(model, model_name, output_path):
                           'word_hist',
                           'fb_msg_hist',
                           'embedding'])
+@arg('--tn-label', choices=['frequency',
+                            'optics_cl'])
 def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
          data_type='article', action='wc_animation', lang='hungarian',
-         tn_dir='tnboard_data'):
+         tn_dir='tnboard_data', tn_label='frequency'):
 
     if source == 'news':
         if action != 'embedding':
@@ -168,8 +175,11 @@ def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn=
             common_word_hist(data, 'article', lang, 70)
         elif action == 'embedding':
             model = Word2Vec.load(data_path)
-            tensorboard_emb(model, save_name, tn_dir)
-
+            if tn_label == 'frequency':
+                labels = lambda w: model.wv.vocab[w].count
+            elif tn_label == 'optics_cl':
+                labels = lambda w: w[0]
+            tensorboard_emb(model, save_name, tn_dir, labeler=labels, label_name=tn_label.capitalize())
 
     elif source in ['fb', 'slack']:
         # Facebook/Slack messages
