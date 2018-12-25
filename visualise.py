@@ -14,9 +14,9 @@ import numpy as np
 import text_process as tp
 
 
-def plt_wordcloud(text, lang='hungarian', animated=True):
+def plt_wordcloud(text, lang='hungarian', animated=True, mask=None):
     sw = tp.stopwords_lang[lang]
-    wordcloud = WordCloud(stopwords=sw).generate(text)
+    wordcloud = WordCloud(stopwords=sw, mask=mask).generate(text)
     return plt.imshow(wordcloud, interpolation="bilinear", animated=animated)
 
 
@@ -32,12 +32,19 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
     :return:
     """
     fig = plt.figure()
+
+    # Style
+    plt.style.use('dark_background')
+    x, y = np.ogrid[:650, :650]
+    mask = 1.5 * (x - 325) ** 2 + 0.8 * (y - 325) ** 2 > 300 ** 2
+    mask = 255 * mask.astype(int)
+
     ims = []
     for key, text in tqdm(text_dict_items):
-        title = plt.text(170, -4, key)
+        title = plt.text(200, -4, key, fontsize=16, family='cursive')
         if url_filter_ptrn:
             text = tp.replace_links(text, url_filter_ptrn)
-        im = plt_wordcloud(text, lang=lang, animated=True)
+        im = plt_wordcloud(text, lang=lang, animated=True, mask=mask)
         ims.append([im, title])
 
     ani = animation.ArtistAnimation(fig, ims, interval=interval, blit=False,
@@ -45,7 +52,7 @@ def animate_wordclouds(text_dict_items, lang='hungarian', interval=200, repeat_d
     plt.axis('off')
 
     if save_name:
-        ani.save("{}.mp4".format(save_name), bitrate=1000)
+        ani.save("{}.mp4".format(save_name), bitrate=4000)
 
     plt.show()
 
