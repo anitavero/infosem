@@ -1,6 +1,6 @@
 from gensim.models import Word2Vec
 import argh
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, KMeans
 from sklearn import metrics
 
 import text_process as tp
@@ -40,10 +40,31 @@ def dbscan_clustering(model, eps=0.5, min_samples=90):
 
     print('Estimated number of clusters: %d' % n_clusters_)
     print('Estimated number of noise points: %d' % n_noise_)
-    if n_clusters_ > 1:
-        print("Silhouette Coefficient: %0.3f"
-              % metrics.silhouette_score(model.wv.vectors, labels))
 
+    return labels
+
+
+def kmeans(model, n_clusters=3, random_state=1):
+    kmeans_model = KMeans(n_clusters=n_clusters, random_state=random_state).fit(model.wv.vectors)
+    labels = kmeans_model.labels_
+    return labels
+
+
+def cluster_eval(vectors, labels):
+    """Unsupervised metrics for a clustering."""
+    try:
+        print("Silhouette Coefficient: %0.3f"
+              % metrics.silhouette_score(vectors, labels))
+    except ValueError as e:
+        print("[Silhouette Coefficient] " + str(e))
+
+
+cluster_methods = {'dbscan': dbscan_clustering, 'kmeans': kmeans}
+
+
+def run_clustering(model, cluster_method, **kwargs):
+    labels = cluster_methods[cluster_method](model, **kwargs)
+    cluster_eval(model.wv.vectors, labels)
 
 
 def main(data_path, save_path, data_type='article', lang='hungarian',
