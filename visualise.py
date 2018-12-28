@@ -86,10 +86,10 @@ def common_word_hist(data, data_type, lang, word_num=100):
 def plot_facebook_msg_hist(msg_data, labelfreq=2):
     """Plot a message histogram using a bar."""
     msgcnt_hist = tp.facebook_msg_hist(msg_data)
-    plot_bar(msgcnt_hist, labelfreq)
+    plot_bar(msgcnt_hist, labelfreq, xlabel='Date', ylabel='Number of messages')
 
 
-def plot_bar(key_value_list, labelfreq):
+def plot_bar(key_value_list, labelfreq, xlabel='', ylabel='', title=''):
     """
     Plots a bar of a (key, value) list.
     :param key_value_list: list of (str, int)
@@ -98,6 +98,10 @@ def plot_bar(key_value_list, labelfreq):
     plt.bar(x, y)
     plt.xticks(rotation=70)
     plt.xticks(x, [x[i] if i % labelfreq == 0 else '' for i in range(len(x))])
+    plt.tight_layout()
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
     plt.show()
 
 
@@ -195,7 +199,7 @@ def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn=
                 data_path = '/Users/anitavero/projects/data/facebook_jk'
             data = tp.read_facebook_jsons(data_path)
             if action == 'fb_msg_hist':
-                plot_facebook_msg_hist(data, labelfreq=20)
+                plot_facebook_msg_hist(data, labelfreq=10)
                 return
             else:
                 daily_messages = tp.faceboook_msg_per_day(data)
