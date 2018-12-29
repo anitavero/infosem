@@ -53,13 +53,12 @@ def kmeans(model, n_clusters=3, random_state=1):
 
 
 def cluster_eval(vectors, labels):
-    """Unsupervised metrics for a clustering."""
+    """Unsupervised clustering metrics."""
     t = PrettyTable(['Metric', 'Score'])
     def safe_metric(metric):
         name = re.sub('_', ' ', metric.__name__).title()
         try:
             t.add_row([name, round(metric(vectors, labels), 4)])
-            # print("{}:\t %0.3f".format(name) % metric(vectors, labels))
         except ValueError as e:
             print("[{0}] {1}".format(name, e))
 
