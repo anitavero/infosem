@@ -2,6 +2,8 @@ from gensim.models import Word2Vec
 import argh
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn import metrics
+import re
+from prettytable import PrettyTable
 
 import text_process as tp
 import util
@@ -52,11 +54,20 @@ def kmeans(model, n_clusters=3, random_state=1):
 
 def cluster_eval(vectors, labels):
     """Unsupervised metrics for a clustering."""
-    try:
-        print("Silhouette Coefficient: %0.3f"
-              % metrics.silhouette_score(vectors, labels))
-    except ValueError as e:
-        print("[Silhouette Coefficient] " + str(e))
+    t = PrettyTable(['Metric', 'Score'])
+    def safe_metric(metric):
+        name = re.sub('_', ' ', metric.__name__).title()
+        try:
+            t.add_row([name, round(metric(vectors, labels), 4)])
+            # print("{}:\t %0.3f".format(name) % metric(vectors, labels))
+        except ValueError as e:
+            print("[{0}] {1}".format(name, e))
+
+    safe_metric(metrics.silhouette_score)
+    safe_metric(metrics.calinski_harabaz_score)
+    safe_metric(metrics.davies_bouldin_score)
+
+    print(t)
 
 
 cluster_methods = {'dbscan': dbscan_clustering, 'kmeans': kmeans}
