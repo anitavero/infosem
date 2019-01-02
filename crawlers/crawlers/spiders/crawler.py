@@ -75,7 +75,7 @@ class NegySpider(NewsSpider):
         'https://444.hu/author/urfip/',
         'https://444.hu/author/vajdag/'
     ]
-    allowed_domains = '444.hu'
+    allowed_domains = ['444.hu']
     custom_settings = {
         'SCHEDULER_DEBUG': True,
         'FEED_FORMAT': 'jsonlines',
@@ -91,7 +91,7 @@ class OrigoSpider(NewsSpider):
     """
     name = 'origo'
     start_urls = ['http://www.origo.hu/index.html']
-    allowed_domains = 'origo.hu'
+    allowed_domains = ['origo.hu']
     custom_settings = {
         'SCHEDULER_DEBUG': True,
         'FEED_FORMAT': 'jsonlines',
