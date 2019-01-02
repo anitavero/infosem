@@ -80,6 +80,14 @@ def corpus_hist(data, data_type, lang):
     return Counter(tokenize(text, lang))
 
 
+def hapax_legomena(text):
+    """Return words that occur only once within a text.
+    :param text: str list or Counter
+    """
+    cnt = Counter(text) if type(text) == list else text
+    return [w for w, c in cnt.most_common() if c == 1]
+
+
 def data_per_month(data, data_type, concat):
     """
     Group articles for months
@@ -143,6 +151,20 @@ def faceboook_msg_per_day(msg_data):
         else:
             day_text_dict[k] = m['content'].encode('latin1').decode('utf8')
     return day_text_dict
+
+
+def get_facebook_text(msg_data, tokenized=False, lang='hunglish'):
+    """
+    Concatetates all messages.
+    :param msg_data: Loaded Faceebook json.
+    :return: str corpus
+    """
+    corpus = ''
+    for m in msg_data['messages']:
+        corpus += ' ' + m['content'].encode('latin1').decode('utf8')
+    if tokenized:
+        return tokenize(corpus, lang)
+    return corpus
 
 
 def read_facebook_jsons(dir):
