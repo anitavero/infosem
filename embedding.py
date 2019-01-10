@@ -113,11 +113,12 @@ def order_local(Vt, n_neighbors, metric='l2'):
     Vv = velocity(Vt)
 
     avg_velocity_series = []
+
     for t in range(Vv.shape[2]):
-        V = Vv[:, :, t]
+        Vvt = Vv[:, :, t]
         avg_nb_velocity_dists = []
         for ids in indices:
-            avg_nb_velocity_dists.append(np.average(np.dot(V[ids[1:]], V[ids[0]])))
+            avg_nb_velocity_dists.append(np.average(np.dot(Vvt[ids[1:]], Vvt[ids[0]])))
         avg_velocity_series.append(np.average(avg_nb_velocity_dists))
     return avg_velocity_series
 
@@ -135,12 +136,4 @@ def main(data_path, save_path, data_type='article', lang='hungarian',
 
 
 if __name__ == '__main__':
-    # argh.dispatch_command(main)
-    V = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
-    Vt = np.empty((4, 3, 5))
-    Vt[:, :, 4] = V * 3
-    Vt[:, :, 3] = V * 2
-    Vt[:, :, 2] = V + 5
-    Vt[:, :, 1] = V + 2
-    Vt[:, :, 0] = V
-    print(order_local(Vt, 2))
+    argh.dispatch_command(main)
