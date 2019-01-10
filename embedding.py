@@ -1,6 +1,8 @@
 from gensim.models import Word2Vec
 import argh
+import numpy as np
 from sklearn.cluster import DBSCAN, KMeans
+from sklearn.neighbors import NearestNeighbors
 from sklearn import metrics
 import re
 from prettytable import PrettyTable
@@ -77,6 +79,54 @@ def run_clustering(model, cluster_method, **kwargs):
     cluster_eval(model.wv.vectors, labels)
 
 
+#######################################################
+############ Self-organised system metrics ############
+#######################################################
+
+
+############## Metrics at a given time t ##############
+
+
+def velocity(Vt):
+    """
+    Return a series of velocity vectors that each point made in a time series.
+    :param Vt: vector space series, NxDxT
+    :return: NxDxT-1
+    """
+    return Vt[:, :, 1:] - Vt[:, :, :-1]
+
+
+def avg_speed_throug_time(Vt):
+    """L2 norm of the velocity matrices at every time step t."""
+    V = velocity(Vt)
+    return map(np.linalg.norm, [V[:, :, t] for t in range(V.shape[2])])
+
+
+###### Order parameters ######
+
+
+def order_local(Vt, n_neighbors, metric='l2'):
+    """Average velocity distance from nearest neighbors."""
+    V = Vt[:, :, -1]
+    nbrs = NearestNeighbors(n_neighbors=n_neighbors+1, algorithm='ball_tree', metric=metric).fit(V)
+    distances, indices = nbrs.kneighbors(V)
+    Vv = velocity(Vt)
+
+    avg_velocity_series = []
+    for t in range(Vv.shape[2]):
+        V = Vv[:, :, t]
+        avg_nb_velocity_dists = []
+        for ids in indices:
+            avg_nb_velocity_dists.append(np.average(np.dot(V[ids[1:]], V[ids[0]])))
+        avg_velocity_series.append(np.average(avg_nb_velocity_dists))
+    return avg_velocity_series
+
+
+def avg_pairwise_distances(V):
+    """Average pairwise distances."""
+    return np.average(metrics.pairwise_distances(V))
+
+
 def main(data_path, save_path, data_type='article', lang='hungarian',
          size=100, window=5, min_count=100, workers=4, epochs=5, max_vocab_size=None):
     data = util.read_jl(data_path)
@@ -85,4 +135,12 @@ def main(data_path, save_path, data_type='article', lang='hungarian',
 
 
 if __name__ == '__main__':
-    argh.dispatch_command(main)
+    # argh.dispatch_command(main)
+    V = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
+    Vt = np.empty((4, 3, 5))
+    Vt[:, :, 4] = V * 3
+    Vt[:, :, 3] = V * 2
+    Vt[:, :, 2] = V + 5
+    Vt[:, :, 1] = V + 2
+    Vt[:, :, 0] = V
+    print(order_local(Vt, 2))
