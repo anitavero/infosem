@@ -69,8 +69,13 @@ def tokenize(text, lang):
 
 
 def get_sents(data, data_type, lang):
-    """Convert text to list of str format (sdt for gensim)."""
+    """Convert data to list of str format (sdt for gensim)."""
     text = get_text(data, data_type)
+    return text2gensim(text, lang)
+
+
+def text2gensim(text, lang):
+    """Convert text to list of str format (sdt for gensim)."""
     sents = sent_tokenize(text)
     return iter([list(tokenize(s, lang)) for s in sents])
 

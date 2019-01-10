@@ -6,29 +6,31 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn import metrics
 import re
 from prettytable import PrettyTable
+from tqdm import tqdm
 
 import text_process as tp
 import util
 
 
-def train(data, data_type, lang, save_path,
-         size=100, window=5, min_count=100, workers=4,
-         epochs=5, max_vocab_size=None):
+def train(corpus, data_type, lang, save_path,
+          size=100, window=5, min_count=100, workers=4,
+          epochs=5, max_vocab_size=None):
     """
     Train w2v.
     :param data_path: str, json file path
     :param save_path: Model file path
     :return: trained model
     """
-    print("Get sents...")
-    texts = tp.get_sents(data, data_type=data_type, lang=lang)
+    # print("Get sents...")
+    # texts = tp.get_sents(data, data_type=data_type, lang=lang)
+    texts = tp.text2gensim(corpus, lang)
 
     model = Word2Vec(texts, size=size, window=window, min_count=min_count, workers=workers,
                      max_vocab_size=max_vocab_size)
     model.save(save_path)
 
     model = Word2Vec.load(save_path)
-    print("train...")
+    # print("train...")
     model.train(texts, total_examples=len(list(texts)), epochs=epochs)
 
     return model
@@ -96,7 +98,7 @@ def velocity(Vt):
     return Vt[:, :, 1:] - Vt[:, :, :-1]
 
 
-def avg_speed_throug_time(Vt):
+def avg_speed_through_time(Vt):
     """L2 norm of the velocity matrices at every time step t."""
     V = velocity(Vt)
     return map(np.linalg.norm, [V[:, :, t] for t in range(V.shape[2])])
@@ -128,11 +130,52 @@ def avg_pairwise_distances(V):
     return np.average(metrics.pairwise_distances(V))
 
 
+def avg_pairwise_distances_through_time(Vt):
+    """Average pairwise distances at every time step t."""
+    return map(avg_pairwise_distances, [Vt[:, :, t] for t in range(Vt.shape[2])])
+
+
+#######################################################
+
+
+def order_through_time(corpus_list, save_path, data_type='article', lang='hungarian',
+         size=100, window=5, min_count=100, workers=4, epochs=5, max_vocab_size=None,
+         n_neighbors=5):
+    """
+    Train Word2Vec on a series of corpora and evaluate order metrics after each training.
+    :param corpus_list: str list
+    :return: metrics
+    """
+    Vt = []
+    for corpus in tqdm(corpus_list):
+        model = train(corpus, data_type, lang, save_path, size, window, min_count,
+                      workers, epochs, max_vocab_size)
+        if Vt == []:
+            Vt = model.wv.vectors
+        else:
+            Vt = np.vstack([Vt, model.wv.vectors])
+
+    order_locals = order_local(Vt, n_neighbors, metric='l2')
+    avg_speeds = avg_speed_through_time(Vt)
+    avg_pw_dists = avg_pairwise_distances_through_time(Vt)
+
+    return order_locals, avg_speeds, avg_pw_dists
+
+
+
 def main(data_path, save_path, data_type='article', lang='hungarian',
-         size=100, window=5, min_count=100, workers=4, epochs=5, max_vocab_size=None):
+         size=100, window=5, min_count=1, workers=4, epochs=5, max_vocab_size=None,
+         n_neighbors=5):
     data = util.read_jl(data_path)
-    return train(data, data_type, lang, save_path, size, window, min_count, workers, epochs,
-                 max_vocab_size)
+    data.sort(key=lambda x: x['date'])
+    news_per_month = tp.data_per_month(data, data_type=data_type, concat=True)
+    order_locals, avg_speeds, avg_pw_dists = \
+        order_through_time(news_per_month.values(), save_path, data_type=data_type, lang=lang,
+         size=size, window=window, min_count=min_count, workers=workers, epochs=epochs,
+         max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
+    print("Local order parameters:", order_locals)
+    print("Average speeds:", avg_speeds)
+    print("Average pairwise distances:", avg_pw_dists)
 
 
 if __name__ == '__main__':
