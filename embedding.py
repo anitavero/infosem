@@ -7,14 +7,17 @@ from sklearn import metrics
 import re
 from prettytable import PrettyTable
 from tqdm import tqdm
+from itertools import chain
+import os
 
 import text_process as tp
 import util
+from util import roundl
 
 
 def train(corpus, data_type, lang, save_path,
           size=100, window=5, min_count=100, workers=4,
-          epochs=5, max_vocab_size=None):
+          epochs=5, max_vocab_size=None, pretraining_corpus=None):
     """
     Train w2v.
     :param data_path: str, json file path
@@ -25,13 +28,18 @@ def train(corpus, data_type, lang, save_path,
     # texts = tp.get_sents(data, data_type=data_type, lang=lang)
     texts = tp.text2gensim(corpus, lang)
 
-    model = Word2Vec(texts, size=size, window=window, min_count=min_count, workers=workers,
-                     max_vocab_size=max_vocab_size)
-    model.save(save_path)
+    if not os.path.exists(save_path):
+        model = Word2Vec(texts, size=size, window=window, min_count=min_count, workers=workers,
+                         max_vocab_size=max_vocab_size)
+    else:
+        model = Word2Vec.load(save_path)
 
-    model = Word2Vec.load(save_path)
+    if pretraining_corpus:
+        model.build_vocab(pretraining_corpus, update=True)
     # print("train...")
     model.train(texts, total_examples=len(list(texts)), epochs=epochs)
+
+    model.save(save_path)
 
     return model
 
@@ -146,21 +154,34 @@ def order_through_time(corpus_list, save_path, data_type='article', lang='hungar
     :param corpus_list: str list
     :return: metrics
     """
-    Vt = []
-    for corpus in tqdm(corpus_list):
+    vocabs =list()
+    for t, corpus in enumerate(tqdm(corpus_list)):
         model = train(corpus, data_type, lang, save_path, size, window, min_count,
-                      workers, epochs, max_vocab_size)
-        if Vt == []:
-            Vt = model.wv.vectors
-        else:
-            Vt = np.vstack([Vt, model.wv.vectors])
+                      workers, epochs, max_vocab_size,
+                      pretraining_corpus=list(set(chain(list(corpus_list)[:t]))))
+        vocabs.append(model.wv.vocab)
+        if t == 0:
+            Vt = np.empty((model.wv.vectors.shape[0], size, len(corpus_list)))
+        Vt_prev = Vt.copy()
+        Vt = np.empty((model.wv.vectors.shape[0], size, len(corpus_list)))
+        # Add new words to all the models in previous time steps with full zero embeddings
+        for tp in range(0, t):
+            Vtp = Vt_prev[:, :, tp]
+            # Make sure the embeddings belong to the same word indices in each matrix.
+            # Invariant: vocab[t-1] is element of vocab[t] for each t=[1...n] because
+            # we always train the model further from the previous one.
+            for w in vocabs[t]:
+                if w in vocabs[tp]:     # Keep vector from the tp time step
+                    Vt[vocabs[t][w].index, :, tp] = Vtp[vocabs[tp][w].index]
+                else:                   # Add new words with full zero embeddings
+                    Vt[vocabs[t][w].index, :, tp] = np.zeros(size)
+        Vt[:, :, t] = model.wv.vectors
 
     order_locals = order_local(Vt, n_neighbors, metric='l2')
     avg_speeds = avg_speed_through_time(Vt)
     avg_pw_dists = avg_pairwise_distances_through_time(Vt)
 
-    return order_locals, avg_speeds, avg_pw_dists
-
+    return order_locals, avg_speeds, avg_pw_dists, vocabs
 
 
 def main(data_path, save_path, data_type='article', lang='hungarian',
@@ -169,13 +190,14 @@ def main(data_path, save_path, data_type='article', lang='hungarian',
     data = util.read_jl(data_path)
     data.sort(key=lambda x: x['date'])
     news_per_month = tp.data_per_month(data, data_type=data_type, concat=True)
-    order_locals, avg_speeds, avg_pw_dists = \
+    order_locals, avg_speeds, avg_pw_dists, vocabs = \
         order_through_time(news_per_month.values(), save_path, data_type=data_type, lang=lang,
          size=size, window=window, min_count=min_count, workers=workers, epochs=epochs,
          max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
-    print("Local order parameters:", order_locals)
-    print("Average speeds:", avg_speeds)
-    print("Average pairwise distances:", avg_pw_dists)
+    print("Local order parameters:", roundl(order_locals))
+    print("Average speeds:", roundl(avg_speeds))
+    print("Average pairwise distances:", roundl(avg_pw_dists))
+    print("Vocab sizes:", [len(v) for v in vocabs])
 
 
 if __name__ == '__main__':
