@@ -15,7 +15,7 @@ import util
 from util import roundl
 
 
-def train(corpus, data_type, lang, save_path,
+def train(corpus, lang, save_path,
           size=100, window=5, min_count=100, workers=4,
           epochs=5, max_vocab_size=None, pretraining_corpus=None):
     """
@@ -24,8 +24,7 @@ def train(corpus, data_type, lang, save_path,
     :param save_path: Model file path
     :return: trained model
     """
-    # print("Get sents...")
-    # texts = tp.get_sents(data, data_type=data_type, lang=lang)
+    # print("Convert to gensim format...")
     texts = tp.text2gensim(corpus, lang)
 
     if not os.path.exists(save_path):
@@ -146,7 +145,7 @@ def avg_pairwise_distances_through_time(Vt):
 #######################################################
 
 
-def order_through_time(corpus_list, save_path, data_type='article', lang='hungarian',
+def order_through_time(corpus_list, save_path, lang='hungarian',
          size=100, window=5, min_count=100, workers=4, epochs=5, max_vocab_size=None,
          n_neighbors=5):
     """
@@ -155,8 +154,8 @@ def order_through_time(corpus_list, save_path, data_type='article', lang='hungar
     :return: metrics
     """
     vocabs =list()
-    for t, corpus in enumerate(tqdm(corpus_list)):
-        model = train(corpus, data_type, lang, save_path, size, window, min_count,
+    for t, corpus in enumerate(tqdm(list(corpus_list))):
+        model = train(corpus, lang, save_path, size, window, min_count,
                       workers, epochs, max_vocab_size,
                       pretraining_corpus=list(set(chain(list(corpus_list)[:t]))))
         vocabs.append(model.wv.vocab)
@@ -184,17 +183,28 @@ def order_through_time(corpus_list, save_path, data_type='article', lang='hungar
     return order_locals, avg_speeds, avg_pw_dists, vocabs
 
 
+def prep_nltk_corpora():
+    from nltk.corpus import brown, reuters, gutenberg, genesis
+    return [c.raw() for c in [brown, reuters, gutenberg, genesis]]
+
+
 def main(data_path, save_path, data_type='article', lang='hungarian',
          size=100, window=5, min_count=1, workers=4, epochs=5, max_vocab_size=None,
          n_neighbors=5):
-    data = util.read_jl(data_path)
-    data.sort(key=lambda x: x['date'])
-    news_per_month = tp.data_per_month(data, data_type=data_type, concat=True)
+    if data_path =='nltk':
+        print("Prepare NLTK corpora...")
+        corpora = prep_nltk_corpora()
+    else:
+        data = util.read_jl(data_path)
+        data.sort(key=lambda x: x['date'])
+        corpora = tp.data_per_month(data, data_type=data_type, concat=True).values()
+
     order_locals, avg_speeds, avg_pw_dists, vocabs = \
-        order_through_time(news_per_month.values(), save_path, data_type=data_type, lang=lang,
+        order_through_time(corpora, save_path, lang=lang,
          size=size, window=window, min_count=min_count, workers=workers, epochs=epochs,
          max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
-    print("Local order parameters:", roundl(order_locals))
+
+    print("Local order parameters:", roundl(order_locals, 5))
     print("Average speeds:", roundl(avg_speeds))
     print("Average pairwise distances:", roundl(avg_pw_dists))
     print("Vocab sizes:", [len(v) for v in vocabs])
