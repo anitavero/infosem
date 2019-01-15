@@ -11,3 +11,8 @@ def read_jl(path):
 
 def roundl(l, n=2):
     return [round(x, n) for x in l]
+
+
+def subfix_filename(filename, subfix, separator='_'):
+    fn, ext = filename.split('.')
+    return fn + separator + str(subfix) + '.' + ext

@@ -1,5 +1,6 @@
 from gensim.models import Word2Vec
 import argh
+from argh import arg
 import numpy as np
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.neighbors import NearestNeighbors
@@ -12,7 +13,7 @@ import os
 
 import text_process as tp
 import util
-from util import roundl
+from util import roundl, subfix_filename
 
 
 def train(corpus, lang, save_path,
@@ -153,28 +154,17 @@ def order_through_time(corpus_list, save_path, lang='hungarian',
     :param corpus_list: str list
     :return: metrics
     """
-    vocabs =list()
+    vocabs = list()
+    Vt = np.empty((0, size, 0))
     for t, corpus in enumerate(tqdm(list(corpus_list))):
         model = train(corpus, lang, save_path, size, window, min_count,
                       workers, epochs, max_vocab_size,
                       pretraining_corpus=list(set(chain(list(corpus_list)[:t]))))
+        # save model snapshots
+        model.save(subfix_filename(save_path, t))
+
         vocabs.append(model.wv.vocab)
-        if t == 0:
-            Vt = np.empty((model.wv.vectors.shape[0], size, len(corpus_list)))
-        Vt_prev = Vt.copy()
-        Vt = np.empty((model.wv.vectors.shape[0], size, len(corpus_list)))
-        # Add new words to all the models in previous time steps with full zero embeddings
-        for tp in range(0, t):
-            Vtp = Vt_prev[:, :, tp]
-            # Make sure the embeddings belong to the same word indices in each matrix.
-            # Invariant: vocab[t-1] is element of vocab[t] for each t=[1...n] because
-            # we always train the model further from the previous one.
-            for w in vocabs[t]:
-                if w in vocabs[tp]:     # Keep vector from the tp time step
-                    Vt[vocabs[t][w].index, :, tp] = Vtp[vocabs[tp][w].index]
-                else:                   # Add new words with full zero embeddings
-                    Vt[vocabs[t][w].index, :, tp] = np.zeros(size)
-        Vt[:, :, t] = model.wv.vectors
+        Vt = add_embedding(Vt, vocabs, model)
 
     order_locals = order_local(Vt, n_neighbors, metric='l2')
     avg_speeds = avg_speed_through_time(Vt)
@@ -183,11 +173,42 @@ def order_through_time(corpus_list, save_path, lang='hungarian',
     return order_locals, avg_speeds, avg_pw_dists, vocabs
 
 
+def add_embedding(embeddings, vocabs, new_model):
+    """
+    Add new embedding to an embedding series by adding words to all the models
+    in previous time steps with full zero embeddings so they have the same size.
+    :param embeddings: tensor of NxDxT
+    :param new_model: Word2Vec model
+    :return: embeddings: tensor of MxDxT+1, where M = N + |new_model.wv.vocab|
+    """
+    t = embeddings.shape[2]
+    size = embeddings.shape[1]
+    vocab_size = new_model.wv.vectors.shape[0]
+    # if t == 0:
+    #     Vt = np.empty((vocab_size, size, 1))
+    Vt_prev = embeddings.copy()
+    Vt = np.empty((vocab_size, size, t + 1))
+    # Add new words to all the models in previous time steps with full zero embeddings
+    for tp in range(0, t):
+        Vtp = Vt_prev[:, :, tp]
+        # Make sure the embeddings belong to the same word indices in each matrix.
+        # Invariant: vocab[t-1] is element of vocab[t] for each t=[1...n] because
+        # we always train the model further from the previous one.
+        for w in vocabs[t]:
+            if w in vocabs[tp]:  # Keep vector from the tp time step
+                Vt[vocabs[t][w].index, :, tp] = Vtp[vocabs[tp][w].index]
+            else:  # Add new words with full zero embeddings
+                Vt[vocabs[t][w].index, :, tp] = np.zeros(size)
+    Vt[:, :, t] = new_model.wv.vectors
+    return Vt
+
+
 def prep_nltk_corpora():
     from nltk.corpus import brown, reuters, gutenberg, genesis
     return [c.raw() for c in [brown, reuters, gutenberg, genesis]]
 
 
+@arg('--max-vocab-size', type=int)
 def main(data_path, save_path, data_type='article', lang='hungarian',
          size=100, window=5, min_count=1, workers=4, epochs=5, max_vocab_size=None,
          n_neighbors=5):
