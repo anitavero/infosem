@@ -11,6 +11,7 @@ from tqdm import tqdm
 from itertools import chain, tee
 import os
 from glob import glob
+from matplotlib import pyplot as plt
 
 import text_process as tp
 import util
@@ -224,11 +225,25 @@ def eval_model_series(model_name, n_neighbors):
     return sos_eval(Vt, n_neighbors) + (vocabs,)
 
 
+def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs):
+    fig = plt.figure()
+    plt.plot(order_locals)
+    plt.title('Local order')
+    fig = plt.figure()
+    plt.plot(list(avg_speeds))
+    plt.plot(list(avg_pw_dists))
+    plt.legend(['Avg speed', 'Avg pairwise dist'])
+    fig = plt.figure()
+    plt.plot([len(v) for v in vocabs])
+    plt.title('Vocab sizes')
+    plt.show()
+
+
 @arg('--max-vocab-size', type=int)
 @arg('--models', choices=['train', 'load'])
 def main(data_path, save_path=None, data_type='article', lang='hungarian',
          size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
-         n_neighbors=5, models='train'):
+         n_neighbors=10, models='train'):
     if models == 'train':
         if data_path =='nltk':
             print("Prepare NLTK corpora...")
@@ -244,6 +259,7 @@ def main(data_path, save_path=None, data_type='article', lang='hungarian',
              max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
     elif  models == 'load':
         order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_path, n_neighbors)
+        plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
 
     print("Local order parameters:", roundl(order_locals, 5))
     print("Average speeds:", roundl(avg_speeds))
