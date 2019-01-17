@@ -248,9 +248,10 @@ def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs):
 
 @arg('--max-vocab-size', type=int)
 @arg('--models', choices=['train', 'load'])
+@arg('--plot', action='store_true')
 def main(data_path, save_path=None, data_type='article', lang='hungarian',
          size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
-         n_neighbors=10, models='train'):
+         n_neighbors=10, models='train', plot=False):
     if models == 'train':
         if data_path =='nltk':
             print("Prepare NLTK corpora...")
@@ -267,7 +268,8 @@ def main(data_path, save_path=None, data_type='article', lang='hungarian',
     elif  models == 'load':
         order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_path, n_neighbors)
 
-    plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
+    if plot:
+        plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
 
     print("Local order parameters:", roundl(order_locals, 5))
     print("Average speeds:", roundl(avg_speeds))
