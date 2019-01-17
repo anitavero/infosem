@@ -10,6 +10,7 @@ from prettytable import PrettyTable
 from tqdm import tqdm
 from itertools import chain, tee
 import os
+from glob import glob
 
 import text_process as tp
 import util
@@ -169,11 +170,7 @@ def order_through_time(corpus_list, save_path, lang='hungarian',
         vocabs.append(model.wv.vocab)
         Vt = add_embedding(Vt, vocabs, model)
 
-    order_locals = order_local(Vt, n_neighbors, metric='l2')
-    avg_speeds = avg_speed_through_time(Vt)
-    avg_pw_dists = avg_pairwise_distances_through_time(Vt)
-
-    return order_locals, avg_speeds, avg_pw_dists, vocabs
+    return sos_eval(Vt, n_neighbors) + (vocabs,)
 
 
 def add_embedding(embeddings, vocabs, new_model):
@@ -208,22 +205,45 @@ def prep_nltk_corpora():
     return [c.raw() for c in [brown, reuters, gutenberg, genesis]]
 
 
-@arg('--max-vocab-size', type=int)
-def main(data_path, save_path, data_type='article', lang='hungarian',
-         size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
-         n_neighbors=5):
-    if data_path =='nltk':
-        print("Prepare NLTK corpora...")
-        corpora = prep_nltk_corpora()
-    else:
-        data = util.read_jl(data_path)
-        data.sort(key=lambda x: x['date'])
-        corpora = tp.data_per_month(data, data_type=data_type, concat=True).values()
+def sos_eval(Vt, n_neighbors):
+    order_locals = order_local(Vt, n_neighbors, metric='l2')
+    avg_speeds = avg_speed_through_time(Vt)
+    avg_pw_dists = avg_pairwise_distances_through_time(Vt)
 
-    order_locals, avg_speeds, avg_pw_dists, vocabs = \
-        order_through_time(corpora, save_path, lang=lang,
-         size=size, window=window, min_count=min_count, workers=workers, epochs=epochs,
-         max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
+    return order_locals, avg_speeds, avg_pw_dists
+
+
+def eval_model_series(model_name, n_neighbors):
+    Vt = np.empty((0, 100, 0))
+    vocabs = list()
+    model_files = glob(model_name + '_*')
+    for i in tqdm(range(len(model_files)), desc='Loading models'):
+        model = Word2Vec.load('{}_{}.model'.format(model_name,  i))
+        vocabs.append(model.wv.vocab)
+        Vt = add_embedding(Vt, vocabs, model)
+    return sos_eval(Vt, n_neighbors) + (vocabs,)
+
+
+@arg('--max-vocab-size', type=int)
+@arg('--models', choices=['train', 'load'])
+def main(data_path, save_path=None, data_type='article', lang='hungarian',
+         size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
+         n_neighbors=5, models='train'):
+    if models == 'train':
+        if data_path =='nltk':
+            print("Prepare NLTK corpora...")
+            corpora = prep_nltk_corpora()
+        else:
+            data = util.read_jl(data_path)
+            data.sort(key=lambda x: x['date'])
+            corpora = tp.data_per_month(data, data_type=data_type, concat=True).values()
+
+        order_locals, avg_speeds, avg_pw_dists, vocabs = \
+            order_through_time(corpora, save_path, lang=lang,
+             size=size, window=window, min_count=min_count, workers=workers, epochs=epochs,
+             max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
+    elif  models == 'load':
+        order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_path, n_neighbors)
 
     print("Local order parameters:", roundl(order_locals, 5))
     print("Average speeds:", roundl(avg_speeds))
