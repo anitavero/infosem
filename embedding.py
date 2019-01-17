@@ -161,7 +161,7 @@ def order_through_time(corpus_list, save_path, lang='hungarian',
     """
     vocabs = list()
     Vt = np.empty((0, size, 0))
-    for t, corpus in enumerate(tqdm(list(corpus_list))):
+    for t, corpus in enumerate(tqdm(list(corpus_list), desc='Training')):
         model = train(corpus, lang, save_path, size, window, min_count,
                       workers, epochs, max_vocab_size,
                       pretraining_corpus=list(set(chain(list(corpus_list)[:t]))))
