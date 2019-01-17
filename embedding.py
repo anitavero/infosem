@@ -202,7 +202,14 @@ def add_embedding(embeddings, vocabs, new_model):
 
 
 def prep_nltk_corpora():
-    from nltk.corpus import brown, reuters, gutenberg, genesis
+    try:
+        from nltk.corpus import brown, reuters, gutenberg, genesis
+    except:
+        import nltk
+        nltk.download('brown')
+        nltk.download('reuters')
+        nltk.download('gutenberg')
+        nltk.download('genesis')
     return [c.raw() for c in [brown, reuters, gutenberg, genesis]]
 
 
@@ -222,7 +229,7 @@ def eval_model_series(model_name, n_neighbors):
         model = Word2Vec.load('{}_{}.model'.format(model_name,  i))
         vocabs.append(model.wv.vocab)
         Vt = add_embedding(Vt, vocabs, model)
-    return sos_eval(Vt, n_neighbors) + (vocabs,)
+    return map(list, sos_eval(Vt, n_neighbors) + (vocabs,))
 
 
 def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs):
@@ -259,7 +266,8 @@ def main(data_path, save_path=None, data_type='article', lang='hungarian',
              max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
     elif  models == 'load':
         order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_path, n_neighbors)
-        plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
+
+    plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
 
     print("Local order parameters:", roundl(order_locals, 5))
     print("Average speeds:", roundl(avg_speeds))
