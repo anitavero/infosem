@@ -222,11 +222,12 @@ def sos_eval(Vt, n_neighbors):
 
 
 def eval_model_series(model_name, n_neighbors):
-    Vt = np.empty((0, 100, 0))
     vocabs = list()
-    model_files = glob(model_name + '_*')
+    model_files = glob(model_name + '_*.model')
     for i in tqdm(range(len(model_files)), desc='Loading models'):
         model = Word2Vec.load('{}_{}.model'.format(model_name,  i))
+        if i == 0:
+            Vt = np.empty((0, model.wv.vector_size, 0))
         vocabs.append(model.wv.vocab)
         Vt = add_embedding(Vt, vocabs, model)
     return map(list, sos_eval(Vt, n_neighbors) + (vocabs,))
