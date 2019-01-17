@@ -8,7 +8,7 @@ from sklearn import metrics
 import re
 from prettytable import PrettyTable
 from tqdm import tqdm
-from itertools import chain
+from itertools import chain, tee
 import os
 
 import text_process as tp
@@ -27,17 +27,20 @@ def train(corpus, lang, save_path,
     """
     # print("Convert to gensim format...")
     texts = tp.text2gensim(corpus, lang)
+    texts, texts_l = tee(texts)
+    total_examples = len(list(texts_l))
 
     if not os.path.exists(save_path):
-        model = Word2Vec(texts, size=size, window=window, min_count=min_count, workers=workers,
-                         max_vocab_size=max_vocab_size)
+        texts, texts0 = tee(texts)
+        model = Word2Vec(texts0, size=size, window=window, min_count=min_count, workers=workers,
+                         max_vocab_size=max_vocab_size, compute_loss=True)
     else:
         model = Word2Vec.load(save_path)
 
     if pretraining_corpus:
         model.build_vocab(pretraining_corpus, update=True)
     # print("train...")
-    model.train(texts, total_examples=len(list(texts)), epochs=epochs)
+    model.train(texts, total_examples=total_examples, epochs=epochs)
 
     model.save(save_path)
 
@@ -124,7 +127,7 @@ def order_local(Vt, n_neighbors, metric='l2'):
 
     avg_velocity_series = []
 
-    for t in range(Vv.shape[2]):
+    for t in tqdm(range(Vv.shape[2]), desc='Local order'):
         Vvt = Vv[:, :, t]
         avg_nb_velocity_dists = []
         for ids in indices:
@@ -184,11 +187,8 @@ def add_embedding(embeddings, vocabs, new_model):
     t = embeddings.shape[2]
     size = embeddings.shape[1]
     vocab_size = new_model.wv.vectors.shape[0]
-    # if t == 0:
-    #     Vt = np.empty((vocab_size, size, 1))
     Vt_prev = embeddings.copy()
     Vt = np.empty((vocab_size, size, t + 1))
-    # Add new words to all the models in previous time steps with full zero embeddings
     for tp in range(0, t):
         Vtp = Vt_prev[:, :, tp]
         # Make sure the embeddings belong to the same word indices in each matrix.
@@ -210,7 +210,7 @@ def prep_nltk_corpora():
 
 @arg('--max-vocab-size', type=int)
 def main(data_path, save_path, data_type='article', lang='hungarian',
-         size=100, window=5, min_count=1, workers=4, epochs=5, max_vocab_size=None,
+         size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
          n_neighbors=5):
     if data_path =='nltk':
         print("Prepare NLTK corpora...")
@@ -232,4 +232,18 @@ def main(data_path, save_path, data_type='article', lang='hungarian',
 
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
     argh.dispatch_command(main)
+
+    # model0 = Word2Vec.load('444_w2v_0.model')
+    # model1 = Word2Vec.load('444_w2v_1.model')
+    # Vt = np.empty((0, 100, 0))
+    # Vt = add_embedding(Vt, [model0.wv.vocab], model0)
+    # Vt = add_embedding(Vt, [model0.wv.vocab, model1.wv.vocab], model1)
+    # local_orders = order_local(Vt, 5)
+    # print("Local order parameters (nb 5):", roundl(local_orders, 5))
+    # local_orders = order_local(Vt, 1)
+    # print("Local order parameters (nb 1):", roundl(local_orders, 5))
+    # local_orders = order_local(Vt, 50)
+    # print("Local order parameters (nb 100):", roundl(local_orders, 5))
