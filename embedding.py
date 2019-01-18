@@ -238,16 +238,26 @@ def eval_model_series(model_name, n_neighbors):
 
 
 def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens):
-    fig = plt.figure()
-    plt.plot(order_locals)
-    plt.title('Local order')
-    fig = plt.figure()
-    plt.plot(list(avg_speeds))
-    plt.plot(list(avg_pw_dists))
-    plt.legend(['Avg speed', 'Avg pairwise dist'])
-    fig = plt.figure()
-    plt.plot(vocablens)
-    plt.title('Vocab sizes')
+    fig, axes = plt.subplots(2, 2)
+
+    axes[0, 0].set_ylabel('Local order')
+    axes[0, 0].grid(True)
+    axes[0, 0].plot(order_locals)
+
+    axes[1, 0].set_xlabel('Corpora number')
+    axes[1, 0].set_ylabel('Avg speed')
+    axes[1, 0].grid(True)
+    axes[1, 0].plot(list(avg_speeds))
+
+    axes[0, 1].set_ylabel('Avg pairwise dist')
+    axes[0, 1].grid(True)
+    axes[0, 1].plot(list(avg_pw_dists))
+
+    axes[1, 1].set_xlabel('Corpora number')
+    axes[1, 1].set_ylabel('Vocabulary size')
+    axes[1, 1].grid(True)
+    axes[1, 1].plot(vocablens)
+
     plt.show()
 
 
