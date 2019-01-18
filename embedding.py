@@ -201,6 +201,8 @@ def add_embedding(embeddings, vocabs, new_model):
     return Vt
 
 
+#TODO: Create experiments module and refactor these below
+
 def prep_nltk_corpora():
     try:
         from nltk.corpus import brown, reuters, gutenberg, genesis, inaugural, webtext, nps_chat
@@ -253,18 +255,20 @@ def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs):
 @arg('--max-vocab-size', type=int)
 @arg('--models', choices=['train', 'load'])
 @arg('--plot', action='store_true')
-def main(data_path, save_path=None, data_type='article', lang='hungarian',
+def main(data_source, save_path=None, data_type='article', lang='hungarian',
          size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
          n_neighbors=10, models='train', plot=False):
     if models == 'train':
-        if data_path =='nltk':
+        if data_source == 'nltk':
             print("Prepare NLTK corpora...")
             corpora = prep_nltk_corpora()
-        elif data_path == 'inaugural':
+        elif data_source == 'inaugural':
             from nltk.corpus import inaugural as ing
             corpora = [ing.raw(ing.fileids()[i]) for i in range(len(ing.fileids()))]
+        elif type(data_source) == tuple:
+            corpora = data_source
         else:
-            data = util.read_jl(data_path)
+            data = util.read_jl(data_source)
             data.sort(key=lambda x: x['date'])
             corpora = tp.data_per_month(data, data_type=data_type, concat=True).values()
 
@@ -272,8 +276,8 @@ def main(data_path, save_path=None, data_type='article', lang='hungarian',
             order_through_time(corpora, save_path, lang=lang,
              size=size, window=window, min_count=min_count, workers=workers, epochs=epochs,
              max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
-    elif  models == 'load':
-        order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_path, n_neighbors)
+    elif models == 'load':
+        order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_source, n_neighbors)
 
     if plot:
         plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
@@ -282,6 +286,8 @@ def main(data_path, save_path=None, data_type='article', lang='hungarian',
     print("Average speeds:", roundl(avg_speeds))
     print("Average pairwise distances:", roundl(avg_pw_dists))
     print("Vocab sizes:", [len(v) for v in vocabs])
+
+    return order_locals, avg_speeds, avg_pw_dists, vocabs
 
 
 if __name__ == '__main__':
