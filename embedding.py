@@ -280,6 +280,7 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
              max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
     elif models == 'load':
         order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_source, n_neighbors)
+        save_path = data_source
 
     vocablens = [len(v) for v in vocabs]
 
@@ -293,7 +294,7 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
         print("Vocab sizes:", vocablens)
 
     # Save results
-    with open(os.path.join(os.path.split(data_source)[0], 'metrics.json'), 'w') as f:
+    with open(os.path.join(os.path.split(save_path)[0], 'metrics.json'), 'w') as f:
         json.dump({'order_locals': order_locals,
                   'avg_speeds': avg_speeds,
                   'avg_pw_dists': avg_pw_dists,
