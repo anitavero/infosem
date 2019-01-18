@@ -255,9 +255,10 @@ def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs):
 @arg('--max-vocab-size', type=int)
 @arg('--models', choices=['train', 'load'])
 @arg('--plot', action='store_true')
+@arg('--std', action='store_true')
 def main(data_source, save_path=None, data_type='article', lang='hungarian',
          size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
-         n_neighbors=10, models='train', plot=False):
+         n_neighbors=10, models='train', plot=False, std=False):
     if models == 'train':
         if data_source == 'nltk':
             print("Prepare NLTK corpora...")
@@ -282,10 +283,11 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
     if plot:
         plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
 
-    print("Local order parameters:", roundl(order_locals, 5))
-    print("Average speeds:", roundl(avg_speeds))
-    print("Average pairwise distances:", roundl(avg_pw_dists))
-    print("Vocab sizes:", [len(v) for v in vocabs])
+    if std:
+        print("Local order parameters:", roundl(order_locals, 5))
+        print("Average speeds:", roundl(avg_speeds))
+        print("Average pairwise distances:", roundl(avg_pw_dists))
+        print("Vocab sizes:", [len(v) for v in vocabs])
 
     return order_locals, avg_speeds, avg_pw_dists, vocabs
 
@@ -295,14 +297,3 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
     argh.dispatch_command(main)
 
-    # model0 = Word2Vec.load('444_w2v_0.model')
-    # model1 = Word2Vec.load('444_w2v_1.model')
-    # Vt = np.empty((0, 100, 0))
-    # Vt = add_embedding(Vt, [model0.wv.vocab], model0)
-    # Vt = add_embedding(Vt, [model0.wv.vocab, model1.wv.vocab], model1)
-    # local_orders = order_local(Vt, 5)
-    # print("Local order parameters (nb 5):", roundl(local_orders, 5))
-    # local_orders = order_local(Vt, 1)
-    # print("Local order parameters (nb 1):", roundl(local_orders, 5))
-    # local_orders = order_local(Vt, 50)
-    # print("Local order parameters (nb 100):", roundl(local_orders, 5))
