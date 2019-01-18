@@ -240,23 +240,28 @@ def eval_model_series(model_name, n_neighbors):
 def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens):
     fig, axes = plt.subplots(2, 2)
 
-    axes[0, 0].set_ylabel('Local order')
-    axes[0, 0].grid(True)
-    axes[0, 0].plot(order_locals)
+    if type(order_locals[0]) is float:
+        order_locals, avg_speeds, avg_pw_dists, vocablens = \
+            [order_locals], [avg_speeds], [avg_pw_dists], [vocablens]
 
-    axes[1, 0].set_xlabel('Corpora number')
-    axes[1, 0].set_ylabel('Avg speed')
-    axes[1, 0].grid(True)
-    axes[1, 0].plot(list(avg_speeds))
+    for i in range(len(order_locals)):
+        axes[0, 0].set_ylabel('Local order')
+        axes[0, 0].grid(True)
+        axes[0, 0].plot(order_locals[i], label=str(i))
 
-    axes[0, 1].set_ylabel('Avg pairwise dist')
-    axes[0, 1].grid(True)
-    axes[0, 1].plot(list(avg_pw_dists))
+        axes[1, 0].set_xlabel('Corpora number')
+        axes[1, 0].set_ylabel('Avg speed')
+        axes[1, 0].grid(True)
+        axes[1, 0].plot(list(avg_speeds[i]))
 
-    axes[1, 1].set_xlabel('Corpora number')
-    axes[1, 1].set_ylabel('Vocabulary size')
-    axes[1, 1].grid(True)
-    axes[1, 1].plot(vocablens)
+        axes[0, 1].set_ylabel('Avg pairwise dist')
+        axes[0, 1].grid(True)
+        axes[0, 1].plot(list(avg_pw_dists[i]))
+
+        axes[1, 1].set_xlabel('Corpora number')
+        axes[1, 1].set_ylabel('Vocabulary size')
+        axes[1, 1].grid(True)
+        axes[1, 1].plot(vocablens[i])
 
     plt.show()
 
