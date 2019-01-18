@@ -152,7 +152,7 @@ def avg_pairwise_distances_through_time(Vt):
 
 
 def order_through_time(corpus_list, save_path, lang='hungarian',
-         size=100, window=5, min_count=100, workers=4, epochs=5, max_vocab_size=None,
+         size=100, window=5, min_count=100, workers=4, epochs=20, max_vocab_size=None,
          n_neighbors=5):
     """
     Train Word2Vec on a series of corpora and evaluate order metrics after each training.
@@ -203,14 +203,17 @@ def add_embedding(embeddings, vocabs, new_model):
 
 def prep_nltk_corpora():
     try:
-        from nltk.corpus import brown, reuters, gutenberg, genesis
+        from nltk.corpus import brown, reuters, gutenberg, genesis, inaugural, webtext, nps_chat
     except:
         import nltk
         nltk.download('brown')
         nltk.download('reuters')
         nltk.download('gutenberg')
         nltk.download('genesis')
-    return [c.raw() for c in [brown, reuters, gutenberg, genesis]]
+        nltk.download('inaugural')
+        nltk.download('webtext')
+        nltk.download('nps_chat')
+    return [c.raw() for c in [brown, reuters, gutenberg, genesis, inaugural, webtext, nps_chat]]
 
 
 def sos_eval(Vt, n_neighbors):
@@ -257,6 +260,9 @@ def main(data_path, save_path=None, data_type='article', lang='hungarian',
         if data_path =='nltk':
             print("Prepare NLTK corpora...")
             corpora = prep_nltk_corpora()
+        elif data_path == 'inaugural':
+            from nltk.corpus import inaugural as ing
+            corpora = [ing.raw(ing.fileids()[i]) for i in range(len(ing.fileids()))]
         else:
             data = util.read_jl(data_path)
             data.sort(key=lambda x: x['date'])
