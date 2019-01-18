@@ -30,13 +30,6 @@ def nltk_permutations():
                  epochs=20, max_vocab_size=None, n_neighbors=10,
                  models='train', plot=False)
 
-        # Save results
-        with open(os.path.join(folder, 'metrics.json'), 'w') as f:
-            json.dump({'order_locals': order_locals,
-                      'avg_speeds': avg_speeds,
-                      'avg_pw_dists': avg_pw_dists,
-                      'vocab_lens': vocablens}, f)
-
 
 def main():
     nltk_permutations()

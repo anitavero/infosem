@@ -12,6 +12,7 @@ from itertools import chain, tee
 import os
 from glob import glob
 from matplotlib import pyplot as plt
+import json
 
 import text_process as tp
 import util
@@ -280,6 +281,8 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
     elif models == 'load':
         order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_source, n_neighbors)
 
+    vocablens = [len(v) for v in vocabs]
+
     if plot:
         plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
 
@@ -287,13 +290,19 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
         print("Local order parameters:", roundl(order_locals, 5))
         print("Average speeds:", roundl(avg_speeds))
         print("Average pairwise distances:", roundl(avg_pw_dists))
-        print("Vocab sizes:", [len(v) for v in vocabs])
+        print("Vocab sizes:", vocablens)
 
-    return order_locals, list(avg_speeds), list(avg_pw_dists), [len(v) for v in vocabs]
+    # Save results
+    with open(os.path.join(os.path.splot(save_path)[0], 'metrics.json'), 'w') as f:
+        json.dump({'order_locals': order_locals,
+                  'avg_speeds': avg_speeds,
+                  'avg_pw_dists': avg_pw_dists,
+                  'vocab_lens': vocablens}, f)
+
+    return order_locals, list(avg_speeds), list(avg_pw_dists), vocablens
 
 
 if __name__ == '__main__':
     import logging
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
     argh.dispatch_command(main)
-
