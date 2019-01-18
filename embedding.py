@@ -115,7 +115,7 @@ def velocity(Vt):
 def avg_speed_through_time(Vt):
     """L2 norm of the velocity matrices at every time step t."""
     V = velocity(Vt)
-    return map(np.linalg.norm, [V[:, :, t] for t in range(V.shape[2])])
+    return list(map(np.linalg.norm, [V[:, :, t] for t in range(V.shape[2])]))
 
 
 ###### Order parameters ######
@@ -146,7 +146,7 @@ def avg_pairwise_distances(V):
 
 def avg_pairwise_distances_through_time(Vt):
     """Average pairwise distances at every time step t."""
-    return map(avg_pairwise_distances, [Vt[:, :, t] for t in range(Vt.shape[2])])
+    return list(map(avg_pairwise_distances, [Vt[:, :, t] for t in range(Vt.shape[2])]))
 
 
 #######################################################
@@ -300,7 +300,7 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
                   'avg_pw_dists': avg_pw_dists,
                   'vocab_lens': vocablens}, f)
 
-    return order_locals, list(avg_speeds), list(avg_pw_dists), vocablens
+    return order_locals, avg_speeds, avg_pw_dists, vocablens
 
 
 if __name__ == '__main__':
