@@ -289,7 +289,7 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
         print("Average pairwise distances:", roundl(avg_pw_dists))
         print("Vocab sizes:", [len(v) for v in vocabs])
 
-    return order_locals, list(avg_speeds), list(avg_pw_dists), vocabs
+    return order_locals, list(avg_speeds), list(avg_pw_dists), [len(v) for v in vocabs]
 
 
 if __name__ == '__main__':

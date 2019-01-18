@@ -24,7 +24,7 @@ def nltk_permutations():
             f.write('\n'.join([n for n in names]))
         save_path = os.path.join(folder, 'nltk_w2v.model')
 
-        order_locals, avg_speeds, avg_pw_dists, vocabs = \
+        order_locals, avg_speeds, avg_pw_dists, vocablens = \
             emb.main(corpora, save_path=save_path,
                  lang='english', size=300, window=5, min_count=1, workers=8,
                  epochs=20, max_vocab_size=None, n_neighbors=10,
@@ -35,7 +35,7 @@ def nltk_permutations():
             json.dump({'order_locals': order_locals,
                       'avg_speeds': avg_speeds,
                       'avg_pw_dists': avg_pw_dists,
-                      'vocabs': vocabs}, f)
+                      'vocab_lens': vocablens}, f)
 
 
 def main():
