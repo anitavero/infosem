@@ -293,7 +293,7 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
         print("Vocab sizes:", vocablens)
 
     # Save results
-    with open(os.path.join(os.path.splot(save_path)[0], 'metrics.json'), 'w') as f:
+    with open(os.path.join(os.path.split(save_path)[0], 'metrics.json'), 'w') as f:
         json.dump({'order_locals': order_locals,
                   'avg_speeds': avg_speeds,
                   'avg_pw_dists': avg_pw_dists,
