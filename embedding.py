@@ -202,8 +202,6 @@ def add_embedding(embeddings, vocabs, new_model):
     return Vt
 
 
-#TODO: Create experiments module and refactor these below
-
 def prep_nltk_corpora():
     try:
         from nltk.corpus import brown, reuters, gutenberg, genesis, inaugural, webtext, nps_chat
@@ -239,7 +237,7 @@ def eval_model_series(model_name, n_neighbors):
     return map(list, sos_eval(Vt, n_neighbors) + (vocabs,))
 
 
-def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs):
+def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens):
     fig = plt.figure()
     plt.plot(order_locals)
     plt.title('Local order')
@@ -248,7 +246,7 @@ def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs):
     plt.plot(list(avg_pw_dists))
     plt.legend(['Avg speed', 'Avg pairwise dist'])
     fig = plt.figure()
-    plt.plot([len(v) for v in vocabs])
+    plt.plot(vocablens)
     plt.title('Vocab sizes')
     plt.show()
 
@@ -257,9 +255,11 @@ def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs):
 @arg('--models', choices=['train', 'load'])
 @arg('--plot', action='store_true')
 @arg('--std', action='store_true')
+@arg('--no-metrics-save', action='store_true')
 def main(data_source, save_path=None, data_type='article', lang='hungarian',
          size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
-         n_neighbors=10, models='train', plot=False, std=False):
+         n_neighbors=10, models='train', plot=False, std=False, no_metrics_save=False):
+    vocablens = []
     if models == 'train':
         if data_source == 'nltk':
             print("Prepare NLTK corpora...")
@@ -279,13 +279,23 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
              size=size, window=window, min_count=min_count, workers=workers, epochs=epochs,
              max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
     elif models == 'load':
-        order_locals, avg_speeds, avg_pw_dists, vocabs = eval_model_series(data_source, n_neighbors)
         save_path = data_source
+        if os.path.exists(os.path.join(os.path.split(save_path)[0], 'metrics.json')):
+            with open(os.path.join(os.path.split(save_path)[0], 'metrics.json')) as f:
+                metrics = json.load(f)
+                order_locals = metrics['order_locals']
+                avg_speeds = metrics['avg_speeds']
+                avg_pw_dists = metrics['avg_pw_dists']
+                vocablens = metrics['vocab_lens']
+        else:
+            order_locals, avg_speeds, avg_pw_dists, vocabs = \
+                        eval_model_series(data_source, n_neighbors)
 
-    vocablens = [len(v) for v in vocabs]
+    if not vocablens:
+        vocablens = [len(v) for v in vocabs]
 
     if plot:
-        plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocabs)
+        plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens)
 
     if std:
         print("Local order parameters:", roundl(order_locals, 5))
@@ -294,11 +304,12 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
         print("Vocab sizes:", vocablens)
 
     # Save results
-    with open(os.path.join(os.path.split(save_path)[0], 'metrics.json'), 'w') as f:
-        json.dump({'order_locals': order_locals,
-                  'avg_speeds': avg_speeds,
-                  'avg_pw_dists': avg_pw_dists,
-                  'vocab_lens': vocablens}, f)
+    if not no_metrics_save:
+        with open(os.path.join(os.path.split(save_path)[0], 'metrics.json'), 'w') as f:
+            json.dump({'order_locals': order_locals,
+                      'avg_speeds': avg_speeds,
+                      'avg_pw_dists': avg_pw_dists,
+                      'vocab_lens': vocablens}, f)
 
     return order_locals, avg_speeds, avg_pw_dists, vocablens
 
