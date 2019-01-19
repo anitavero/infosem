@@ -14,6 +14,7 @@ import os
 from glob import glob
 from matplotlib import pyplot as plt
 import json
+import logging
 
 import text_process as tp
 import util
@@ -273,9 +274,17 @@ def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens):
 @arg('--plot', action='store_true')
 @arg('--std', action='store_true')
 @arg('--no-metrics-save', action='store_true')
+@arg('--log', choices=['INFO', 'ERROR', 'CRITICAL', 'WARNING', 'DEBUG'])
 def main(data_source, save_path=None, data_type='article', lang='hungarian',
          size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
-         n_neighbors=10, models='train', plot=False, std=False, no_metrics_save=False):
+         n_neighbors=10, models='train', plot=False, std=False, no_metrics_save=False,
+         log='ERROR'):
+
+    numeric_level = getattr(logging, log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % log)
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=numeric_level)
+
     vocablens = []
     if models == 'train':
         if data_source == 'nltk':
@@ -332,6 +341,5 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
 
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
+    # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
     argh.dispatch_command(main)
