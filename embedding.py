@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.neighbors import NearestNeighbors
 from sklearn import metrics
+from sklearn.metrics.pairwise import cosine_similarity
 import re
 from prettytable import PrettyTable
 from tqdm import tqdm
@@ -134,7 +135,8 @@ def order_local(Vt, n_neighbors, metric='l2'):
         Vvt = Vv[:, :, t]
         avg_nb_velocity_dists = []
         for ids in indices:
-            avg_nb_velocity_dists.append(np.average(np.dot(Vvt[ids[1:]], Vvt[ids[0]])))
+            avg_nb_velocity_dists.append(
+                np.average(cosine_similarity(Vvt[ids[1:]], Vvt[ids[0]].reshape(1, -1))))
         avg_velocity_series.append(np.average(avg_nb_velocity_dists))
     return avg_velocity_series
 

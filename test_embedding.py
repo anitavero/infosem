@@ -15,9 +15,12 @@ def test_order_local():
     lorder = order_local(Vt, 1)
 
     assert len(lorder) == 4
-    assert lorder[0] == np.dot([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-    assert lorder[1] == np.dot([4.5, 4.5, 4.5], [4.5, 4.5, 4.5])
-    assert lorder[2] == np.dot([2-6, 2-7, 6-8], [8-9, 10-10, 12-11])
+    assert lorder[0] == cosine_similarity(np.array([0.5, 0.5, 0.5]).reshape(1, -1),
+                                          np.array([0.5, 0.5, 0.5]).reshape(1, -1))
+    assert lorder[1] == cosine_similarity(np.array([4.5, 4.5, 4.5]).reshape(1, -1),
+                                          np.array([4.5, 4.5, 4.5]).reshape(1, -1))
+    assert lorder[2] == cosine_similarity(np.array([2-6, 4-7, 6-8]).reshape(1, -1),
+                                          np.array([8-9, 10-10, 12-11]).reshape(1, -1))
 
 
     V = np.array([[1, 2, 3], [40, 50, 60], [100, 200, 300]])
@@ -33,7 +36,10 @@ def test_order_local():
     # Vt[0] . Vt[1]
     # Vt[1] . Vt[0]
     # Vt[2] . Vt[1]
-    assert lorder[0] == (np.dot([10, 10, 10],    [0.5, 0.5, 0.5])   + \
-                         np.dot([0.5, 0.5, 0.5], [10, 10, 10])      + \
-                         np.dot([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]))  \
+    assert lorder[0] == (cosine_similarity(np.array([10, 10, 10]).reshape(1, -1),
+                                           np.array([0.5, 0.5, 0.5]).reshape(1, -1))   + \
+                         cosine_similarity(np.array([0.5, 0.5, 0.5]).reshape(1, -1),
+                                           np.array([10, 10, 10]).reshape(1, -1))      + \
+                         cosine_similarity(np.array([0.5, 0.5, 0.5]).reshape(1, -1),
+                                           np.array([0.5, 0.5, 0.5]).reshape(1, -1)))    \
                         / 3
