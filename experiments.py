@@ -8,7 +8,7 @@ import embedding as emb
 from util import createFolder
 
 
-def nltk_permutations(plot):
+def nltk_permutations(plot, models):
     from nltk.corpus import brown, reuters, gutenberg, genesis, webtext
     cs_n = [('brown', brown), ('reuters', reuters), ('gutenberg', gutenberg),
             ('genesis', genesis), ('webtext', webtext)]
@@ -30,22 +30,18 @@ def nltk_permutations(plot):
             models ='load'
             no_metrics_save = True
         else:
-            models ='train'
             no_metrics_save = False
 
-        try:
-            order_locals, avg_speeds, avg_pw_dists, vocablens = \
-                emb.main(corpora, save_path=save_path,
-                     lang='english', size=300, window=5, min_count=1, workers=8,
-                     epochs=20, max_vocab_size=None, n_neighbors=10,
-                     models=models, plot=False, std=False, no_metrics_save=no_metrics_save)
+        order_locals, avg_speeds, avg_pw_dists, vocablens = \
+            emb.main(corpora, save_path=save_path,
+                 lang='english', size=300, window=5, min_count=1, workers=8,
+                 epochs=20, max_vocab_size=None, n_neighbors=10,
+                 models=models, plot=False, std=False, no_metrics_save=no_metrics_save)
 
-            ols.append(order_locals)
-            avs.append(avg_speeds)
-            avpd.append(avg_pw_dists)
-            vs.append(vocablens)
-        except:
-            continue
+        ols.append(order_locals)
+        avs.append(avg_speeds)
+        avpd.append(avg_pw_dists)
+        vs.append(vocablens)
 
     if plot:
         emb.plot_sos_metrics(order_locals=ols, avg_speeds=avs,
@@ -53,8 +49,9 @@ def nltk_permutations(plot):
 
 
 @arg('--plot', action='store_true')
-def main(plot=False):
-    nltk_permutations(plot=plot)
+@arg('--models', choices=['train', 'load'])
+def main(plot=False, models='train'):
+    nltk_permutations(plot=plot, models=models)
 
 
 if __name__ == '__main__':
