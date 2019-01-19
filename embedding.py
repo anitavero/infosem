@@ -242,7 +242,7 @@ def eval_model_series(model_name, n_neighbors):
 def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens):
     fig, axes = plt.subplots(2, 2)
 
-    if type(order_locals[0]) is float:
+    if type(order_locals[0]) is not list:
         order_locals, avg_speeds, avg_pw_dists, vocablens = \
             [order_locals], [avg_speeds], [avg_pw_dists], [vocablens]
 
