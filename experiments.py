@@ -26,11 +26,13 @@ def nltk_permutations(plot, models):
         save_path = os.path.join(folder, 'nltk_w2v.model')
 
         if plot:
-            corpora = save_path
             models ='load'
             no_metrics_save = True
         else:
             no_metrics_save = False
+
+        if models == 'load':
+            corpora = save_path
 
         order_locals, avg_speeds, avg_pw_dists, vocablens = \
             emb.main(corpora, save_path=save_path,
