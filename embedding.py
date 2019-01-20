@@ -16,6 +16,8 @@ from matplotlib import pyplot as plt
 import json
 import logging
 
+logger = logging.getLogger(__name__)
+
 import text_process as tp
 import util
 from util import roundl, subfix_filename
@@ -23,28 +25,25 @@ from util import roundl, subfix_filename
 
 def train(corpus, lang, save_path,
           size=100, window=5, min_count=100, workers=4,
-          epochs=5, max_vocab_size=None, pretraining_corpus=None):
+          epochs=5, max_vocab_size=None):
     """
     Train w2v.
     :param data_path: str, json file path
     :param save_path: Model file path
     :return: trained model
     """
-    # print("Convert to gensim format...")
     texts = tp.text2gensim(corpus, lang)
-    texts, texts_l = tee(texts)
+    texts, texts_build, texts_l = tee(texts, 3)
     total_examples = len(list(texts_l))
 
     if not os.path.exists(save_path):
-        texts, texts0 = tee(texts)
-        model = Word2Vec(texts0, size=size, window=window, min_count=min_count, workers=workers,
+        model = Word2Vec(texts_build, size=size, window=window, min_count=min_count, workers=workers,
                          max_vocab_size=max_vocab_size, compute_loss=True)
     else:
         model = Word2Vec.load(save_path)
+        model.build_vocab(texts_build, update=True)
+        logger.debug('Updates vocab, new size: {}'.format(len(model.wv.vocab)))
 
-    if pretraining_corpus:
-        model.build_vocab(pretraining_corpus, update=True)
-    # print("train...")
     model.train(texts, total_examples=total_examples, epochs=epochs)
 
     model.save(save_path)
@@ -167,8 +166,7 @@ def order_through_time(corpus_list, save_path, lang='hungarian',
     Vt = np.empty((0, size, 0))
     for t, corpus in enumerate(tqdm(list(corpus_list), desc='Training')):
         model = train(corpus, lang, save_path, size, window, min_count,
-                      workers, epochs, max_vocab_size,
-                      pretraining_corpus=list(set(chain(list(corpus_list)[:t]))))
+                      workers, epochs, max_vocab_size)
         # save model snapshots
         model.save(subfix_filename(save_path, t))
 
@@ -217,7 +215,7 @@ def prep_nltk_corpora():
         nltk.download('inaugural')
         nltk.download('webtext')
         nltk.download('nps_chat')
-    return [c.raw() for c in [brown, reuters, gutenberg, genesis, inaugural, webtext, nps_chat]]
+    return [c.raw() for c in [webtext, brown]]
 
 
 def sos_eval(Vt, n_neighbors):
@@ -275,15 +273,19 @@ def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens):
 @arg('--std', action='store_true')
 @arg('--no-metrics-save', action='store_true')
 @arg('--log', choices=['INFO', 'ERROR', 'CRITICAL', 'WARNING', 'DEBUG'])
-def main(data_source, save_path=None, data_type='article', lang='hungarian',
+def main(data_source, save_path=None, data_type='article', lang='english',
          size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
          n_neighbors=10, models='train', plot=False, std=False, no_metrics_save=False,
          log='ERROR'):
+
+    ######## Logging for word2vec.py ########
 
     numeric_level = getattr(logging, log.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % log)
     logging.basicConfig(format='%(levelname)s:%(message)s', level=numeric_level)
+
+    ########################################
 
     vocablens = []
     if models == 'train':
@@ -341,5 +343,4 @@ def main(data_source, save_path=None, data_type='article', lang='hungarian',
 
 
 if __name__ == '__main__':
-    # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
     argh.dispatch_command(main)
