@@ -122,11 +122,17 @@ def avg_speed_through_time(Vt):
 ###### Order parameters ######
 
 
-def order_local(Vt, n_neighbors, metric='l2'):
+def order_local(Vt, model, n_neighbors, metric='l2'):
     """Average velocity distance from nearest neighbors."""
-    V = Vt[:, :, -1]
-    nbrs = NearestNeighbors(n_neighbors=n_neighbors+1, algorithm='ball_tree', metric=metric).fit(V)
-    distances, indices = nbrs.kneighbors(V)
+    # V = Vt[:, :, -1]
+    # nbrs = NearestNeighbors(n_neighbors=n_neighbors+1, algorithm='ball_tree', metric=metric).fit(V)
+    # distances, indices = nbrs.kneighbors(V)
+
+    indices = []
+    for w in tqdm(model.wv.vocab.keys()):
+        i = model.wv.vocab[w].index
+        indices.append([i] + [model.wv.vocab[ws[0]].index for ws in model.wv.most_similar(w, topn=n_neighbors)])
+
     Vv = velocity(Vt)
 
     avg_velocity_series = []
@@ -173,7 +179,7 @@ def order_through_time(corpus_list, save_path, lang='hungarian',
         vocabs.append(model.wv.vocab)
         Vt = add_embedding(Vt, vocabs, model)
 
-    return sos_eval(Vt, n_neighbors) + (vocabs,)
+    return sos_eval(Vt, model, n_neighbors) + (vocabs,)
 
 
 def add_embedding(embeddings, vocabs, new_model):
@@ -218,8 +224,8 @@ def prep_nltk_corpora():
     return [c.raw() for c in [webtext, brown]]
 
 
-def sos_eval(Vt, n_neighbors):
-    order_locals = order_local(Vt, n_neighbors, metric='l2')
+def sos_eval(Vt, model, n_neighbors):
+    order_locals = order_local(Vt, model, n_neighbors, metric='l2')
     avg_speeds = avg_speed_through_time(Vt)
     avg_pw_dists = avg_pairwise_distances_through_time(Vt)
 

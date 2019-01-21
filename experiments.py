@@ -26,7 +26,7 @@ def nltk_permutations(plot, models):
         save_path = os.path.join(folder, 'nltk_w2v.model')
 
         if plot:
-            models ='load'
+            models = 'load'
             no_metrics_save = True
         else:
             no_metrics_save = False
@@ -50,10 +50,37 @@ def nltk_permutations(plot, models):
                              avg_pw_dists=avpd, vocablens=vs)
 
 
+def news(plot, models):
+
+    print('\n########## 444 ##########\n')
+    data = '444.jl'
+    save_path = 'models/444'
+    createFolder(save_path)
+    emb.main(data, save_path=save_path,
+             lang='hungarian', size=300, window=5, min_count=1, workers=8,
+             epochs=20, max_vocab_size=None, n_neighbors=10,
+             models=models, plot=plot, std=False, no_metrics_save=False)
+
+
+    print('\n########## Origo ##########\n')
+    data = 'origo.jl'
+    save_path = 'models/origo'
+    createFolder(save_path)
+    emb.main(data, save_path=save_path,
+             lang='hungarian', size=300, window=5, min_count=1, workers=8,
+             epochs=20, max_vocab_size=None, n_neighbors=10,
+             models=models, plot=plot, std=False, no_metrics_save=False)
+
+
+
 @arg('--plot', action='store_true')
 @arg('--models', choices=['train', 'load'])
-def main(plot=False, models='train'):
-    nltk_permutations(plot=plot, models=models)
+@arg('--exp', choices=['news', 'nltk'])
+def main(exp, plot=False, models='train'):
+    if exp == 'nltk':
+        nltk_permutations(plot=plot, models=models)
+    elif exp == 'news':
+        news(plot=plot, models=models)
 
 
 if __name__ == '__main__':
