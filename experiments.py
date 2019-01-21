@@ -8,7 +8,7 @@ import embedding as emb
 from util import createFolder
 
 
-def nltk_permutations(plot, models):
+def nltk_permutations(plot, models, workers):
     from nltk.corpus import brown, reuters, gutenberg, genesis, webtext
     cs_n = [('brown', brown), ('reuters', reuters), ('gutenberg', gutenberg),
             ('genesis', genesis), ('webtext', webtext)]
@@ -36,7 +36,7 @@ def nltk_permutations(plot, models):
 
         order_locals, avg_speeds, avg_pw_dists, vocablens = \
             emb.main(corpora, save_path=save_path,
-                 lang='english', size=300, window=5, min_count=1, workers=8,
+                 lang='english', size=300, window=5, min_count=1, workers=workers,
                  epochs=20, max_vocab_size=None, n_neighbors=10,
                  models=models, plot=False, std=False, no_metrics_save=no_metrics_save,
                  samplesize=10000)
@@ -51,14 +51,14 @@ def nltk_permutations(plot, models):
                              avg_pw_dists=avpd, vocablens=vs)
 
 
-def news(plot, models):
+def news(plot, models, workers):
 
     print('\n########## 444 ##########\n')
     data = '444.jl'
     save_path = 'models/444'
     createFolder(save_path)
     emb.main(data, save_path=save_path,
-             lang='hungarian', size=300, window=5, min_count=1, workers=8,
+             lang='hungarian', size=300, window=5, min_count=1, workers=workers,
              epochs=20, max_vocab_size=None, n_neighbors=10,
              models=models, plot=plot, std=False, no_metrics_save=False)
 
@@ -68,7 +68,7 @@ def news(plot, models):
     save_path = 'models/origo'
     createFolder(save_path)
     emb.main(data, save_path=save_path,
-             lang='hungarian', size=300, window=5, min_count=1, workers=8,
+             lang='hungarian', size=300, window=5, min_count=1, workers=workers,
              epochs=20, max_vocab_size=None, n_neighbors=10,
              models=models, plot=plot, std=False, no_metrics_save=False)
 
@@ -77,11 +77,11 @@ def news(plot, models):
 @arg('--plot', action='store_true')
 @arg('--models', choices=['train', 'load'])
 @arg('exp', choices=['news', 'nltk'])
-def main(exp, plot=False, models='train'):
+def main(exp, plot=False, models='train', workers=8):
     if exp == 'nltk':
-        nltk_permutations(plot=plot, models=models)
+        nltk_permutations(plot=plot, models=models, workers=workers)
     elif exp == 'news':
-        news(plot=plot, models=models)
+        news(plot=plot, models=models, workers=workers)
 
 
 if __name__ == '__main__':
