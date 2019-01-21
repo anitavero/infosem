@@ -55,9 +55,9 @@ def news(plot, models, workers):
 
     print('\n########## 444 ##########\n')
     data = '444.jl'
-    save_path = 'models/444'
-    createFolder(save_path)
-    emb.main(data, save_path=save_path,
+    folder = 'models/444'
+    createFolder(folder)
+    emb.main(data, save_path=os.path.join(folder, '444_w2v.model'),
              lang='hungarian', size=300, window=5, min_count=1, workers=workers,
              epochs=20, max_vocab_size=None, n_neighbors=10,
              models=models, plot=plot, std=False, no_metrics_save=False)
@@ -65,9 +65,9 @@ def news(plot, models, workers):
 
     print('\n########## Origo ##########\n')
     data = 'origo.jl'
-    save_path = 'models/origo'
-    createFolder(save_path)
-    emb.main(data, save_path=save_path,
+    folder = 'models/origo'
+    createFolder(folder)
+    emb.main(data, save_path=os.path.join(folder, 'origo_w2v.model'),
              lang='hungarian', size=300, window=5, min_count=1, workers=workers,
              epochs=20, max_vocab_size=None, n_neighbors=10,
              models=models, plot=plot, std=False, no_metrics_save=False)
