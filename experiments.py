@@ -38,7 +38,8 @@ def nltk_permutations(plot, models):
             emb.main(corpora, save_path=save_path,
                  lang='english', size=300, window=5, min_count=1, workers=8,
                  epochs=20, max_vocab_size=None, n_neighbors=10,
-                 models=models, plot=False, std=False, no_metrics_save=no_metrics_save)
+                 models=models, plot=False, std=False, no_metrics_save=no_metrics_save,
+                 samplesize=10000)
 
         ols.append(order_locals)
         avs.append(avg_speeds)
@@ -75,7 +76,7 @@ def news(plot, models):
 
 @arg('--plot', action='store_true')
 @arg('--models', choices=['train', 'load'])
-@arg('--exp', choices=['news', 'nltk'])
+@arg('exp', choices=['news', 'nltk'])
 def main(exp, plot=False, models='train'):
     if exp == 'nltk':
         nltk_permutations(plot=plot, models=models)
