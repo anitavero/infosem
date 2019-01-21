@@ -129,9 +129,10 @@ def order_local(Vt, model, n_neighbors, metric='l2'):
     # distances, indices = nbrs.kneighbors(V)
 
     indices = []
-    for w in tqdm(model.wv.vocab.keys()):
+    for w in tqdm(model.wv.vocab.keys(), desc='{} nearest neighbors'.format(n_neighbors)):
         i = model.wv.vocab[w].index
-        indices.append([i] + [model.wv.vocab[ws[0]].index for ws in model.wv.most_similar(w, topn=n_neighbors)])
+        indices.append([i] + [model.wv.vocab[ws[0]].index
+                              for ws in model.wv.most_similar(w, topn=n_neighbors)])
 
     Vv = velocity(Vt)
 
@@ -147,14 +148,19 @@ def order_local(Vt, model, n_neighbors, metric='l2'):
     return avg_velocity_series
 
 
-def avg_pairwise_distances(V):
+def avg_pairwise_distances(V, samplesize=None):
     """Average pairwise distances."""
+    if samplesize:
+        idx = np.random.randint(V.shape[0], size=samplesize)
+        V = V[idx, :]
     return np.average(metrics.pairwise_distances(V))
 
 
-def avg_pairwise_distances_through_time(Vt):
-    """Average pairwise distances at every time step t."""
-    return list(map(avg_pairwise_distances, [Vt[:, :, t] for t in range(Vt.shape[2])]))
+def avg_pairwise_distances_through_time(Vt, samplesize):
+    """Average pairwise distances at every time step t.
+        :param samplesize: int, sample word embeddings in order to fit in memory.
+    """
+    return [avg_pairwise_distances(Vt[:, :, t], samplesize) for t in range(Vt.shape[2])]
 
 
 #######################################################
@@ -162,7 +168,7 @@ def avg_pairwise_distances_through_time(Vt):
 
 def order_through_time(corpus_list, save_path, lang='hungarian',
          size=100, window=5, min_count=100, workers=4, epochs=20, max_vocab_size=None,
-         n_neighbors=5):
+         n_neighbors=5, samplesize=10000):
     """
     Train Word2Vec on a series of corpora and evaluate order metrics after each training.
     :param corpus_list: str list
@@ -179,7 +185,7 @@ def order_through_time(corpus_list, save_path, lang='hungarian',
         vocabs.append(model.wv.vocab)
         Vt = add_embedding(Vt, vocabs, model)
 
-    return sos_eval(Vt, model, n_neighbors) + (vocabs,)
+    return sos_eval(Vt, model, n_neighbors, samplesize) + (vocabs,)
 
 
 def add_embedding(embeddings, vocabs, new_model):
@@ -224,15 +230,15 @@ def prep_nltk_corpora():
     return [c.raw() for c in [webtext, brown]]
 
 
-def sos_eval(Vt, model, n_neighbors):
+def sos_eval(Vt, model, n_neighbors, samplesize):
     order_locals = order_local(Vt, model, n_neighbors, metric='l2')
     avg_speeds = avg_speed_through_time(Vt)
-    avg_pw_dists = avg_pairwise_distances_through_time(Vt)
+    avg_pw_dists = avg_pairwise_distances_through_time(Vt, samplesize=samplesize)
 
     return order_locals, avg_speeds, avg_pw_dists
 
 
-def eval_model_series(model_name, n_neighbors):
+def eval_model_series(model_name, n_neighbors, samplesize):
     vocabs = list()
     model_files = glob(model_name + '_*.model')
     for i in tqdm(range(len(model_files)), desc='Loading models'):
@@ -241,7 +247,7 @@ def eval_model_series(model_name, n_neighbors):
             Vt = np.empty((0, model.wv.vector_size, 0))
         vocabs.append(model.wv.vocab)
         Vt = add_embedding(Vt, vocabs, model)
-    return map(list, sos_eval(Vt, n_neighbors) + (vocabs,))
+    return map(list, sos_eval(Vt, model, n_neighbors, samplesize) + (vocabs,))
 
 
 def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens):
@@ -282,7 +288,7 @@ def plot_sos_metrics(order_locals, avg_speeds, avg_pw_dists, vocablens):
 def main(data_source, save_path=None, data_type='article', lang='english',
          size=100, window=5, min_count=1, workers=4, epochs=20, max_vocab_size=None,
          n_neighbors=10, models='train', plot=False, std=False, no_metrics_save=False,
-         log='ERROR'):
+         samplesize=10000, log='ERROR'):
 
     ######## Logging for word2vec.py ########
 
@@ -311,7 +317,7 @@ def main(data_source, save_path=None, data_type='article', lang='english',
         order_locals, avg_speeds, avg_pw_dists, vocabs = \
             order_through_time(corpora, save_path, lang=lang,
              size=size, window=window, min_count=min_count, workers=workers, epochs=epochs,
-             max_vocab_size=max_vocab_size, n_neighbors=n_neighbors)
+             max_vocab_size=max_vocab_size, n_neighbors=n_neighbors, samplesize=samplesize)
     elif models == 'load':
         save_path = data_source
         if os.path.exists(os.path.join(os.path.split(save_path)[0], 'metrics.json')):
@@ -323,7 +329,7 @@ def main(data_source, save_path=None, data_type='article', lang='english',
                 vocablens = metrics['vocab_lens']
         else:
             order_locals, avg_speeds, avg_pw_dists, vocabs = \
-                        eval_model_series(data_source, n_neighbors)
+                        eval_model_series(data_source, n_neighbors, samplesize)
 
     if not vocablens:
         vocablens = [len(v) for v in vocabs]
