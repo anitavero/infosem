@@ -67,9 +67,7 @@ def nltk_permutations(plot, models, workers):
                              avg_pw_dists=avpd, vocablens=vs)
 
 
-def news(plot, models, workers, max_vocab_size=200000, min_count=100):
-
-    print('\n########## 444 ##########\n')
+def negy(plot, models, workers, max_vocab_size=200000, min_count=100):
     data = 'crawlers/444.jl'
     folder = 'models/444'
     createFolder(folder)
@@ -80,7 +78,7 @@ def news(plot, models, workers, max_vocab_size=200000, min_count=100):
              max_vocab_size=max_vocab_size, min_count=min_count)
 
 
-    print('\n########## Origo ##########\n')
+def origo(plot, models, workers, max_vocab_size=200000, min_count=100):
     data = 'crawlers/origo.jl'
     folder = 'models/origo'
     createFolder(folder)
@@ -94,12 +92,15 @@ def news(plot, models, workers, max_vocab_size=200000, min_count=100):
 
 @arg('--plot', action='store_true')
 @arg('--models', choices=['train', 'load'])
-@arg('exp', choices=['news', 'nltk'])
+@arg('exp', choices=['negy', 'origo', 'nltk'])
 def main(exp, plot=False, models='train', workers=8, max_vocab_size=200000, min_count=100):
     if exp == 'nltk':
         nltk_permutations(plot=plot, models=models, workers=workers)
-    elif exp == 'news':
-        news(plot=plot, models=models, workers=workers,
+    elif exp == 'negy':
+        negy(plot=plot, models=models, workers=workers,
+             max_vocab_size=max_vocab_size, min_count=min_count)
+    elif exp == 'origo':
+        origo(plot=plot, models=models, workers=workers,
              max_vocab_size=max_vocab_size, min_count=min_count)
 
 
