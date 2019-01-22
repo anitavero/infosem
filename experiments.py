@@ -67,37 +67,40 @@ def nltk_permutations(plot, models, workers):
                              avg_pw_dists=avpd, vocablens=vs)
 
 
-def news(plot, models, workers):
+def news(plot, models, workers, max_vocab_size=200000, min_count=100):
 
     print('\n########## 444 ##########\n')
-    data = '444.jl'
+    data = 'crawlers/444.jl'
     folder = 'models/444'
     createFolder(folder)
     emb.main(data, save_path=os.path.join(folder, '444_w2v.model'),
-             lang='hungarian', size=300, window=5, min_count=1, workers=workers,
-             epochs=20, max_vocab_size=None, n_neighbors=10,
-             models=models, plot=plot, std=False, no_metrics_save=False)
+             lang='hungarian', size=300, window=5, workers=workers,
+             epochs=20, n_neighbors=10,
+             models=models, plot=plot, std=False, no_metrics_save=False,
+             max_vocab_size=max_vocab_size, min_count=min_count)
 
 
     print('\n########## Origo ##########\n')
-    data = 'origo.jl'
+    data = 'crawlers/origo.jl'
     folder = 'models/origo'
     createFolder(folder)
     emb.main(data, save_path=os.path.join(folder, 'origo_w2v.model'),
-             lang='hungarian', size=300, window=5, min_count=1, workers=workers,
-             epochs=20, max_vocab_size=None, n_neighbors=10,
-             models=models, plot=plot, std=False, no_metrics_save=False)
+             lang='hungarian', size=300, window=5, workers=workers,
+             epochs=20, n_neighbors=10,
+             models=models, plot=plot, std=False, no_metrics_save=False,
+             max_vocab_size=max_vocab_size, min_count=min_count)
 
 
 
 @arg('--plot', action='store_true')
 @arg('--models', choices=['train', 'load'])
 @arg('exp', choices=['news', 'nltk'])
-def main(exp, plot=False, models='train', workers=8):
+def main(exp, plot=False, models='train', workers=8, max_vocab_size=200000, min_count=100):
     if exp == 'nltk':
         nltk_permutations(plot=plot, models=models, workers=workers)
     elif exp == 'news':
-        news(plot=plot, models=models, workers=workers)
+        news(plot=plot, models=models, workers=workers,
+             max_vocab_size=max_vocab_size, min_count=min_count)
 
 
 if __name__ == '__main__':
