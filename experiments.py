@@ -33,13 +33,29 @@ def nltk_permutations(plot, models, workers):
 
         if models == 'load':
             corpora = save_path
+            try:    # plot from existing metrics.jsons
+                order_locals, avg_speeds, avg_pw_dists, vocablens = \
+                    emb.main(corpora, save_path=save_path,
+                         lang='english', size=300, window=5, min_count=1, workers=workers,
+                         epochs=20, max_vocab_size=None, n_neighbors=10,
+                         models=models, plot=False, std=False, no_metrics_save=no_metrics_save,
+                         samplesize=10000)
+            except:
+                print(corpora, "doesn't exist.")
+                continue
+        elif models == 'train':
+            # Resume training
+            if os.path.exists(os.path.join(folder, 'metrics.json')):
+                print(folder, "DONE")
+                continue
+            else:
+                order_locals, avg_speeds, avg_pw_dists, vocablens = \
+                    emb.main(corpora, save_path=save_path,
+                         lang='english', size=300, window=5, min_count=1, workers=workers,
+                         epochs=20, max_vocab_size=None, n_neighbors=10,
+                         models=models, plot=False, std=False, no_metrics_save=no_metrics_save,
+                         samplesize=10000)
 
-        order_locals, avg_speeds, avg_pw_dists, vocablens = \
-            emb.main(corpora, save_path=save_path,
-                 lang='english', size=300, window=5, min_count=1, workers=workers,
-                 epochs=20, max_vocab_size=None, n_neighbors=10,
-                 models=models, plot=False, std=False, no_metrics_save=no_metrics_save,
-                 samplesize=10000)
 
         ols.append(order_locals)
         avs.append(avg_speeds)
