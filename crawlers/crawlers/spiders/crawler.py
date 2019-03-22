@@ -1,4 +1,5 @@
 import scrapy
+from datetime import datetime
 
 
 class NewsSpider(scrapy.Spider):
@@ -100,3 +101,26 @@ class OrigoSpider(NewsSpider):
 
     xph_date = '//meta[@name="publish-date"]/@content'
     xph_article = '//article/descendant-or-self::*[self::p | self::ul| self::h2]/descendant-or-self::*/text()'
+
+
+class PetSpider(scrapy.Spider):
+    """
+    Usage: scrapy crawl pet -s JOBDIR=resume_pet
+    """
+    name = 'pet'
+    start_urls = ['https://petition.parliament.uk/petitions/241584']
+    allowed_domains = ['petition.parliament.uk/petitions/241584']
+    custom_settings = {
+        'SCHEDULER_DEBUG': True,
+        'FEED_FORMAT': 'jsonlines',
+        'FEED_URI': 'pet.jl'
+    }
+
+    xph_num = '//span[@class="count"]/@data-count'
+
+    def parse(self, response):
+        yield {
+            'vote_count': response.xpath(self.xph_num).extract(),
+            'time': str(datetime.now())
+        }
+        yield scrapy.Request('https://petition.parliament.uk/petitions/241584', dont_filter=True)
