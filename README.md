@@ -13,7 +13,10 @@ A toolkit to evaluate and visualise Embeddings.
 
 ## Usage
 
-Word cloud visualisation:
+### Word cloud visualisation
+
+This functionality generates a video of wordclouds for Facebook or Slack messages. 
+Each video frame will show a wordcloud for a given day.
 
 ```
 python visualise.py [-h] [--source {fb,slack}] [--data_path DATA_PATH]
