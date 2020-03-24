@@ -169,7 +169,7 @@ def tensorboard_emb(model, model_name, output_path, labeler, label_name):
 @arg('--save_name', help='Full path to the file we save the video.')
 @arg('--interval', help='Interval between video frames in miliseconds.')
 @arg('--url_filter_ptrn', help='Pattern to filter urls.')
-@arg('--lang', help='Language of the messages. "english", "hungarian" or "hunglish". Default: "english"')
+@arg('--lang', help='Language of the messages. "english", "hungarian" or "hunglish".')
 def main(source='fb', data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
          data_type='article', action='wc_animation', lang='english',
          tn_dir='tnboard_data', tn_label='frequency'):

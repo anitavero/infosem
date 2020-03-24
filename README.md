@@ -26,13 +26,13 @@ optional arguments:
   --source {fb,slack}   Message source. "fb": Facebook or "slack" (default:
                         'fb')
   --data_path DATA_PATH
-                        Full path to the data directory. (default: -)
+                        Full path to the data directory.
   --save_name SAVE_NAME
-                        Full path to the file we save the video. (default: -)
+                        Full path to the file we save the video.
   --interval INTERVAL   Interval between video frames in miliseconds.
                         (default: 3000)
   --url_filter_ptrn URL_FILTER_PTRN
                         Pattern to filter urls. (default: '')
   --lang LANG           Language of the messages. "english", "hungarian" or
-                        "hunglish". Default: "english" (default: 'english')
+                        "hunglish". (default: 'english')
 ```
