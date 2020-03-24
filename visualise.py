@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import matplotlib.animation as animation
 # import tensorflow as tf
 # from tensorflow.contrib.tensorboard.plugins import projector
-from gensim.models import Word2Vec
+# from gensim.models import Word2Vec
 from tqdm import tqdm
 import util
 import argh
@@ -164,7 +164,13 @@ def tensorboard_emb(model, model_name, output_path, labeler, label_name):
                           'embedding'])
 @arg('--tn-label', choices=['frequency',
                             'optics_cl'])
-def main(source, data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
+@arg('--source', choices=['fb', 'slack'], default='fb', help='Message source. "fb": Facebook or "slack"')
+@arg('--data_path', help='Full path to the data directory.')
+@arg('--save_name', help='Full path to the file we save the video.')
+@arg('--interval', help='Interval between video frames in miliseconds.')
+@arg('--url_filter_ptrn', help='Pattern to filter urls.')
+@arg('--lang', help='Language of the messages. "english", "hungarian" or "hunglish". Default: "english"')
+def main(source='fb', data_path=None, save_name=None, interval=3000, url_filter_ptrn='',
          data_type='article', action='wc_animation', lang='english',
          tn_dir='tnboard_data', tn_label='frequency'):
 

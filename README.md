@@ -5,39 +5,34 @@ A toolkit to evaluate and visualise Embeddings.
 ## Requirements
 
 * [wordcloud](https://amueller.github.io/word_cloud/)
-* [unidecode](https://pypi.org/project/Unidecode/)
+* unidecode
+* matplotlib
+* argh
+* numpy
+* tqdm
 
 ## Usage
 
 Word cloud visualisation:
 
 ```
-python visualise.py [-h] [--data-path DATA_PATH] [--save-name SAVE_NAME]
-                    [-i INTERVAL] [-u URL_FILTER_PTRN] [--data-type DATA_TYPE]
-                    [--action {wc_animation,month_freq_bar,word_hist,fb_msg_hist,embedding}]
-                    [-l LANG] [--tn-dir TN_DIR]
-                    [--tn-label {frequency,optics_cl}]
-                    source
-
-positional arguments:
-  source                -
+python visualise.py [-h] [--source {fb,slack}] [--data_path DATA_PATH]
+                    [--save_name SAVE_NAME] [--interval INTERVAL]
+                    [--url_filter_ptrn URL_FILTER_PTRN]
+                    [--lang LANG] [--tn-dir TN_DIR]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --data-path DATA_PATH
-                        -
-  --save-name SAVE_NAME
-                        -
-  -i INTERVAL, --interval INTERVAL
-                        3000
-  -u URL_FILTER_PTRN, --url-filter-ptrn URL_FILTER_PTRN
-                        ''
-  --data-type DATA_TYPE
-                        'article'
-  --action {wc_animation,month_freq_bar,word_hist,fb_msg_hist,embedding}
-                        'wc_animation'
-  -l LANG, --lang LANG  'english'
-  --tn-dir TN_DIR       'tnboard_data'
-  --tn-label {frequency,optics_cl}
-                        'frequency'
+  --source {fb,slack}   Message source. "fb": Facebook or "slack" (default:
+                        'fb')
+  --data_path DATA_PATH
+                        Full path to the data directory. (default: -)
+  --save_name SAVE_NAME
+                        Full path to the file we save the video. (default: -)
+  --interval INTERVAL   Interval between video frames in miliseconds.
+                        (default: 3000)
+  --url_filter_ptrn URL_FILTER_PTRN
+                        Pattern to filter urls. (default: '')
+  --lang LANG           Language of the messages. "english", "hungarian" or
+                        "hunglish". Default: "english" (default: 'english')
 ```

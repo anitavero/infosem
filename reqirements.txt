@@ -1,2 +1,6 @@
 wordcloud
 unidecode
+matplotlib
+argh
+numpy
+tqdm
