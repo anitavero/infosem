@@ -51,6 +51,11 @@ def train(corpus, lang, save_path,
     return model
 
 
+#######################################################
+################ Clusterisation metrics ################
+#######################################################
+
+
 def dbscan_clustering(model, eps=0.5, min_samples=90):
     db = DBSCAN(eps=eps, min_samples=min_samples, metric='cosine').fit(model.wv.vectors)
     labels = db.labels_
@@ -185,6 +190,8 @@ def order_through_time(corpus_list, save_path, lang='hungarian',
         vocabs.append(model.wv.vocab)
         Vt = add_embedding(Vt, vocabs, model)
 
+    # TODO: non transitional metrics e.g avg pairwise dist should be computed on the original mxs
+    #   because the lof of new words with zero embeddings mess them up!!!
     return sos_eval(Vt, model, n_neighbors, samplesize) + (vocabs,)
 
 
