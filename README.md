@@ -28,7 +28,7 @@ optional arguments:
   --data_path DATA_PATH
                         Full path to the data directory.
   --save_name SAVE_NAME
-                        Full path to the file we save the video.
+                        Full path to the video file we save.
   --interval INTERVAL   Interval between video frames in miliseconds.
                         (default: 3000)
   --url_filter_ptrn URL_FILTER_PTRN

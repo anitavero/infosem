@@ -166,7 +166,7 @@ def tensorboard_emb(model, model_name, output_path, labeler, label_name):
                             'optics_cl'])
 @arg('--source', choices=['fb', 'slack'], default='fb', help='Message source. "fb": Facebook or "slack"')
 @arg('--data_path', help='Full path to the data directory.')
-@arg('--save_name', help='Full path to the file we save the video.')
+@arg('--save_name', help='Full path to the video file we save.')
 @arg('--interval', help='Interval between video frames in miliseconds.')
 @arg('--url_filter_ptrn', help='Pattern to filter urls.')
 @arg('--lang', help='Language of the messages. "english", "hungarian" or "hunglish".')
