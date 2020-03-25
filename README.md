@@ -11,7 +11,7 @@ A toolkit to evaluate and visualise Embeddings.
 * numpy
 * tqdm
 
-Run `pip install requirements.txt`
+To install the required packages run `pip install requirements.txt`
 
 ## Usage
 
