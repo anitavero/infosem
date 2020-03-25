@@ -11,6 +11,8 @@ A toolkit to evaluate and visualise Embeddings.
 * numpy
 * tqdm
 
+Run `pip install requirements.txt`
+
 ## Usage
 
 ### Word cloud visualisation
